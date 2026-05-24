@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screen/welcome_page.dart';
+import 'screen/opening_page.dart';
 
 void main() {
   runApp(const CateringApp());
@@ -12,7 +12,7 @@ class CateringApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: WelcomePage(),
+      home: OpeningPage(),
     );
   }
 }
