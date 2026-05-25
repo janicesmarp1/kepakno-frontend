@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'admin_signup.dart';
 
 class AdminLoginPage extends StatelessWidget {
   const AdminLoginPage({super.key});
@@ -95,7 +96,29 @@ class AdminLoginPage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 50),
+                const SizedBox(height: 18),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AdminSignUpPage(),
+                      ),
+                    );
+                  },
+
+                  child: const Text(
+                    "Create admin account",
+                    style: TextStyle(
+                      color: Color(0xFFFFA726),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 35),
               ],
             ),
           ),
