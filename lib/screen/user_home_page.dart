@@ -37,17 +37,11 @@ class _UserHomePageState extends State<UserHomePage> {
                   const CircleAvatar(
                     radius: 15,
                     backgroundColor: Colors.black,
-                    child: Icon(
-                      Icons.person,
-                      color: Color(0xFFFFB84D),
-                      size: 20,
-                    ),
+                    child: Icon(Icons.person, color: Color(0xFFFFB84D), size: 20),
                   ),
                   Text(
                     "Hi, ${widget.name}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Icon(Icons.notifications, color: Colors.black, size: 28),
                 ],
@@ -147,14 +141,12 @@ class _UserHomePageState extends State<UserHomePage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              const PackagePage(),
+                                          builder: (context) => const PackagePage(),
                                         ),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          const Color(0xFFFFB84D),
+                                      backgroundColor: const Color(0xFFFFB84D),
                                     ),
                                     child: const Text(
                                       "Lihat Paket",
@@ -192,26 +184,45 @@ class _UserHomePageState extends State<UserHomePage> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 14,
                       childAspectRatio: 1.85,
-                      children: const [
+                      children: [
                         CategoryCard(
                           icon: Icons.wb_twilight,
                           title: "Sarapan",
-                          page: PackagePage(),
+                          page: PackagePage(
+                            name: widget.name,
+                            email: widget.email,
+                            scrollTo: "sarapan",
+                          ),
                         ),
+
                         CategoryCard(
                           icon: Icons.wb_sunny,
                           title: "Makan Siang",
-                          page: PackagePage(),
+                          page: PackagePage(
+                            name: widget.name,
+                            email: widget.email,
+                            scrollTo: "makan_siang",
+                          ),
                         ),
+
                         CategoryCard(
                           icon: Icons.nightlight_round,
                           title: "Makan Malam",
-                          page: PackagePage(),
+                          page: PackagePage(
+                            name: widget.name,
+                            email: widget.email,
+                            scrollTo: "makan_malam",
+                          ),
                         ),
+
                         CategoryCard(
                           icon: Icons.cookie,
                           title: "Snack",
-                          page: PackagePage(),
+                          page: PackagePage(
+                            name: widget.name,
+                            email: widget.email,
+                            scrollTo: "snack",
+                          ),
                         ),
                       ],
                     ),
@@ -246,30 +257,35 @@ class _UserHomePageState extends State<UserHomePage> {
                           active: selectedDay == 0,
                           onTap: () => setState(() => selectedDay = 0),
                         ),
+
                         DayCard(
                           day: "Sel",
                           date: "2",
                           active: selectedDay == 1,
                           onTap: () => setState(() => selectedDay = 1),
                         ),
+
                         DayCard(
                           day: "Rab",
                           date: "3",
                           active: selectedDay == 2,
                           onTap: () => setState(() => selectedDay = 2),
                         ),
+
                         DayCard(
                           day: "Kam",
                           date: "4",
                           active: selectedDay == 3,
                           onTap: () => setState(() => selectedDay = 3),
                         ),
+
                         DayCard(
                           day: "Jum",
                           date: "5",
                           active: selectedDay == 4,
                           onTap: () => setState(() => selectedDay = 4),
                         ),
+
                         DayCard(
                           day: "Sab",
                           date: "6",
@@ -281,19 +297,31 @@ class _UserHomePageState extends State<UserHomePage> {
 
                     const SizedBox(height: 22),
 
-                    const Row(
+                    Row(
                       children: [
                         Expanded(
                           child: PackageSmallCard(
                             title: "Paket Pro",
                             subtitle: "Bisa Custom",
+                            page: PackagePage(
+                              name: widget.name,
+                              email: widget.email,
+                              scrollTo: "promo",
+                            ),
                           ),
                         ),
-                        SizedBox(width: 14),
+
+                        const SizedBox(width: 14),
+
                         Expanded(
                           child: PackageSmallCard(
                             title: "Mode Hemat",
                             subtitle: "Mulai Rp. 15rb",
+                            page: PackagePage(
+                              name: widget.name,
+                              email: widget.email,
+                              scrollTo: "promo",
+                            ),
                           ),
                         ),
                       ],
@@ -442,9 +470,7 @@ class DayCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: active ? const Color(0xFFFFD98F) : const Color(0xFFFFF1D9),
-          border: Border.all(
-            color: active ? Colors.orange : Colors.black26,
-          ),
+          border: Border.all(color: active ? Colors.orange : Colors.black26),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Column(
@@ -473,45 +499,67 @@ class DayCard extends StatelessWidget {
 class PackageSmallCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final Widget? page;
 
   const PackageSmallCard({
     super.key,
     required this.title,
     required this.subtitle,
+    this.page,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFE4B8),
-        border: Border.all(color: Colors.black, width: 1.3),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 15,
-            backgroundColor: Colors.black,
-            child: Icon(
-              Icons.restaurant,
-              color: Color(0xFFFFE4B8),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 15,
+    return InkWell(
+      onTap: page == null
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => page!),
+              );
+            },
+      child: Container(
+        height: 70,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFE4B8),
+          border: Border.all(color: Colors.black, width: 1.3),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 15,
+              backgroundColor: Colors.black,
+              child: Icon(
+                Icons.restaurant,
+                color: Color(0xFFFFE4B8),
+                size: 20,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,82 +1,488 @@
 import 'package:flutter/material.dart';
+import 'user_home_page.dart';
+import 'dashboard_page.dart';
+import 'profile_page.dart';
 
 class PackagePage extends StatefulWidget {
-  const PackagePage({super.key});
+  final String name;
+  final String email;
+  final String scrollTo;
+
+  const PackagePage({
+    super.key,
+    this.name = "User",
+    this.email = "user@mail.com",
+    this.scrollTo = "",
+  });
 
   @override
   State<PackagePage> createState() => _PackagePageState();
 }
 
 class _PackagePageState extends State<PackagePage> {
+  final promoKey = GlobalKey();
+  final sarapanKey = GlobalKey();
+  final makanSiangKey = GlobalKey();
+  final makanMalamKey = GlobalKey();
+  final snackKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollToSection(widget.scrollTo);
+    });
+  }
+
+  void scrollToSection(String section) {
+    GlobalKey? targetKey;
+
+    if (section == "promo") {
+      targetKey = promoKey;
+    } else if (section == "sarapan") {
+      targetKey = sarapanKey;
+    } else if (section == "makan_siang") {
+      targetKey = makanSiangKey;
+    } else if (section == "makan_malam") {
+      targetKey = makanMalamKey;
+    } else if (section == "snack") {
+      targetKey = snackKey;
+    }
+
+    if (targetKey?.currentContext != null) {
+      Scrollable.ensureVisible(
+        targetKey!.currentContext!,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF7EF), // Warna krem sesuai homepage temanmu
+      backgroundColor: Colors.white,
 
-      // 1. TOP BAR / APP BAR (Sama seperti desain yang kamu kirim)
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFFB03A), // Warna oranye katering
-        elevation: 0,
-        leading: const Icon(Icons.account_circle, size: 32, color: Colors.black),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, size: 28, color: Colors.black),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
-
-      // 2. AREA ISI KONTEN MENU
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Teks judul section pertama
-                const Text(
-                  "Paket Promo",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const CircleAvatar(
+                    backgroundColor: Color(0xFFFFBF5E),
+                    child: Icon(Icons.person, color: Colors.white),
                   ),
-                ),
-                const SizedBox(height: 12),
-
-                // TODO: Bagian kartu Nasi Kebuli & Nasi Goreng akan kita selipkan di sini
-                const Text("Kartu-kartu makanan akan kita tambahkan di bawah teks ini..."),
-              ],
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications,
+                      color: Color(0xFFFFBF5E),
+                      size: 30,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    sectionTitle("Paket Promo", promoKey),
+                    const SizedBox(height: 12),
+                    _buildPromoBanner(),
+
+                    const SizedBox(height: 25),
+
+                    sectionTitle("Paket Sarapan", sarapanKey),
+                    const SizedBox(height: 12),
+                    _buildPackageItem(
+                      context,
+                      title: "Nasi Goreng Pagi",
+                      price: "Rp17.000",
+                      description:
+                          "Nasi goreng dengan telur mata sapi dan ayam suwir. Menu praktis dengan energi cukup untuk aktivitas pagi.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1612927601601-6638404737ce?q=80&w=500&auto=format&fit=crop",
+                    ),
+                    _buildPackageItem(
+                      context,
+                      title: "Morning Sandwich Set",
+                      price: "Rp20.000",
+                      description:
+                          "Sandwich sehat dengan sayuran segar, telur, dan isian daging pilihan yang pas untuk sarapan ringan.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1509722747041-616f39b57569?q=80&w=500&auto=format&fit=crop",
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    sectionTitle("Paket Makan Siang", makanSiangKey),
+                    const SizedBox(height: 12),
+                    _buildPackageItem(
+                      context,
+                      title: "Chicken Katsu Curry",
+                      price: "Rp30.000",
+                      description:
+                          "Daging ayam fillet krispi disiram kuah kari kental yang gurih khas Jepang, disajikan dengan nasi hangat.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1690373957252-0fbc49eb692b?q=80&w=500&auto=format&fit=crop",
+                    ),
+                    _buildPackageItem(
+                      context,
+                      title: "Nasi Ayam Geprek",
+                      price: "Rp20.000",
+                      description:
+                          "Ayam goreng tepung renyah yang digeprek dengan sambal bawang super pedas. Disajikan dengan nasi dan lalapan segar.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=500&auto=format&fit=crop",
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    sectionTitle("Paket Makan Malam", makanMalamKey),
+                    const SizedBox(height: 12),
+                    _buildPackageItem(
+                      context,
+                      title: "Rice Bowl Ayam Teriyaki",
+                      price: "Rp25.000",
+                      description:
+                          "Potongan ayam lembut berbalut saus teriyaki manis gurih dengan taburan wijen di atas nasi hangat.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?q=80&w=500&auto=format&fit=crop",
+                    ),
+                    _buildPackageItem(
+                      context,
+                      title: "Nasi Rendang",
+                      price: "Rp25.000",
+                      description:
+                          "Daging sapi pilihan yang dimasak lama dengan rempah-rempah tradisional kaya rasa dan santan kental.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?q=80&w=500&auto=format&fit=crop",
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    sectionTitle("Snack", snackKey),
+                    const SizedBox(height: 12),
+                    _buildPackageItem(
+                      context,
+                      title: "Lumpia Goreng Spesial",
+                      price: "Rp25.000",
+                      description:
+                          "Lumpia renyah dengan isian rebung, ayam, atau sayuran gurih. Cocok untuk menemani waktu santai kuliah.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=500&auto=format&fit=crop",
+                    ),
+                    _buildPackageItem(
+                      context,
+                      title: "Risoles Mayo Premium",
+                      price: "Rp25.000",
+                      description:
+                          "Risoles dengan kulit lembut dan isian smoked beef, telur rebus, serta lelehan mayonnaise premium yang lumer.",
+                      imageUrl:
+                          "https://images.unsplash.com/photo-1628102476696-f84e49963c3e?q=80&w=500&auto=format&fit=crop",
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
 
-      // 3. BOTTOM NAVIGATION BAR (Disamakan dengan model homepage temanmu)
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, // Di halaman Paket, indeks yang aktif adalah nomor 1
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed, // Menjaga posisi ikon tetap stabil
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
+      bottomNavigationBar: Container(
+        height: 65,
+        color: const Color(0xFFFFB84D),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            PackageBottomMenu(
+              icon: Icons.home,
+              title: "Home",
+              page: UserHomePage(name: widget.name, email: widget.email),
+            ),
+            const PackageBottomMenu(
+              icon: Icons.restaurant,
+              title: "Paket",
+              active: true,
+            ),
+            const PackageBottomMenu(
+              icon: Icons.badge,
+              title: "Dasbor",
+              page: DashboardPage(),
+            ),
+            PackageBottomMenu(
+              icon: Icons.person,
+              title: "Profile",
+              page: ProfilePage(name: widget.name, email: widget.email),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget sectionTitle(String title, GlobalKey key) {
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPromoBanner() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      height: 180,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4E0),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=400&auto=format&fit=crop",
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) =>
+                      _buildImagePlaceholder(),
+                ),
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: "Paket",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: "Dasbor",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profile",
+          Expanded(
+            flex: 5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 8,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "PROMO DISKON 20%",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                  const Text(
+                    "Paket Nasi Kebuli",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 3),
+                  const Text(
+                    "- Nasi Kebuli + Sate\n- Gule + Sambal Goreng\n- Acar + Pisang",
+                    style: TextStyle(fontSize: 11, height: 1.2),
+                  ),
+                  const SizedBox(height: 6),
+                  ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFBF5E),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    child: const Text(
+                      "Pesan Sekarang",
+                      style: TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPackageItem(
+    BuildContext context, {
+    required String title,
+    required String price,
+    required String description,
+    required String imageUrl,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+            child: Image.network(
+              imageUrl,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildImagePlaceholder(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      price,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: const Text(
+                    "TOP",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 15),
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFBF5E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Pesan Sekarang",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      color: Colors.grey.shade200,
+      child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 50),
+    );
+  }
+}
+
+class PackageBottomMenu extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool active;
+  final Widget? page;
+
+  const PackageBottomMenu({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.active = false,
+    this.page,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: page == null
+          ? null
+          : () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => page!),
+              );
+            },
+      child: Container(
+        width: 54,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF89C66B) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 24, color: Colors.black),
+            Text(title, style: const TextStyle(fontSize: 10)),
+          ],
+        ),
       ),
     );
   }
