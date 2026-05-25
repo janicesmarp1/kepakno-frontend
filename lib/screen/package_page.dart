@@ -59,34 +59,40 @@ class _PackagePageState extends State<PackagePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
 
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const CircleAvatar(
-                    backgroundColor: Color(0xFFFFBF5E),
-                    child: Icon(Icons.person, color: Colors.white),
+    body: SafeArea(
+      child: Column(
+        children: [
+
+          Container(
+            height: 54,
+            color: const Color(0xFFFFB84D),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CircleAvatar(
+                  radius: 15,
+                  backgroundColor: Colors.black,
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFFFFB84D),
+                    size: 20,
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications,
-                      color: Color(0xFFFFBF5E),
-                      size: 30,
-                    ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
+                ),
+
+                Icon(
+                  Icons.notifications,
+                  color: Colors.black,
+                  size: 28,
+                ),
+              ],
             ),
+          ),
 
             Expanded(
               child: SingleChildScrollView(
