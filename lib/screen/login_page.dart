@@ -39,10 +39,15 @@ class _LoginPageState extends State<LoginPage> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
+        final user = data['data']['user'];
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const UserHomePage(),
+            builder: (context) => UserHomePage(
+              name: user['nama_lengkap'] ?? 'User',
+              email: user['email'] ?? '',
+            ),
           ),
         );
       } else {
@@ -70,6 +75,22 @@ class _LoginPageState extends State<LoginPage> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  InputDecoration inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white.withValues(alpha: 0.7),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 16,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    );
   }
 
   @override
@@ -111,19 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Enter your email",
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.7),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  decoration: inputDecoration("Enter your email"),
                 ),
 
                 const SizedBox(height: 18),
@@ -131,19 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Enter your password",
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.7),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                  decoration: inputDecoration("Enter your password"),
                 ),
 
                 const Spacer(),

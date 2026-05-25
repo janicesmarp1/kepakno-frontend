@@ -71,27 +71,21 @@ class _WelcomePageState extends State<WelcomePage> {
   void goToLogin() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 
   void goToSignUp() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const SignUpPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const SignUpPage()),
     );
   }
 
   void goToAdminLogin() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AdminLoginPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const AdminLoginPage()),
     );
   }
 
@@ -132,7 +126,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 const SizedBox(height: 70),
 
                 SizedBox(
-                  height: 330,
+                  height: 320,
                   child: PageView.builder(
                     controller: _controller,
                     itemCount: slides.length,
@@ -150,9 +144,7 @@ class _WelcomePageState extends State<WelcomePage> {
                             height: 170,
                             fit: BoxFit.contain,
                           ),
-
                           const SizedBox(height: 45),
-
                           Text(
                             slides[index]["text"]!,
                             textAlign: TextAlign.center,
@@ -162,19 +154,19 @@ class _WelcomePageState extends State<WelcomePage> {
                               color: Colors.black87,
                             ),
                           ),
-
-                          const SizedBox(height: 30),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              slides.length,
-                              (i) => indicator(i),
-                            ),
-                          ),
                         ],
                       );
                     },
+                  ),
+                ),
+
+                const SizedBox(height: 5),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    slides.length,
+                    (i) => indicator(i),
                   ),
                 ),
 

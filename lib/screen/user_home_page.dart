@@ -4,7 +4,14 @@ import 'package:kepakno_app/screen/dashboard_page.dart';
 import 'package:kepakno_app/screen/profile_page.dart';
 
 class UserHomePage extends StatefulWidget {
-  const UserHomePage({super.key});
+  final String name;
+  final String email;
+
+  const UserHomePage({
+    super.key,
+    required this.name,
+    required this.email,
+  });
 
   @override
   State<UserHomePage> createState() => _UserHomePageState();
@@ -24,10 +31,10 @@ class _UserHomePageState extends State<UserHomePage> {
               height: 54,
               color: const Color(0xFFFFB84D),
               padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 15,
                     backgroundColor: Colors.black,
                     child: Icon(
@@ -36,7 +43,13 @@ class _UserHomePageState extends State<UserHomePage> {
                       size: 20,
                     ),
                   ),
-                  Icon(Icons.notifications, color: Colors.black, size: 28),
+                  Text(
+                    "Hi, ${widget.name}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Icon(Icons.notifications, color: Colors.black, size: 28),
                 ],
               ),
             ),
@@ -52,7 +65,7 @@ class _UserHomePageState extends State<UserHomePage> {
                         _infoBox(
                           icon: Icons.account_balance_wallet,
                           title: "Saldo",
-                          subtitle: "Rp. 145.000",
+                          subtitle: "Rp. 0",
                           color: const Color(0xFFFFD98F),
                         ),
                         const SizedBox(width: 14),
@@ -90,7 +103,6 @@ class _UserHomePageState extends State<UserHomePage> {
                             ),
                           ),
                           const SizedBox(width: 12),
-
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,17 +155,13 @@ class _UserHomePageState extends State<UserHomePage> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
                                           const Color(0xFFFFB84D),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
                                     ),
                                     child: const Text(
                                       "Lihat Paket",
                                       style: TextStyle(
                                         color: Colors.black,
-                                        fontWeight: FontWeight.bold,
                                         fontSize: 12,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -229,76 +237,47 @@ class _UserHomePageState extends State<UserHomePage> {
 
                     const SizedBox(height: 12),
 
-                    Row (
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            DayCard(
-                              day: "Sen",
-                              date: "1",
-                              active: selectedDay == 0,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 0;
-                                });
-                              },
-                            ),
-
-                            DayCard(
-                              day: "Sel",
-                              date: "2",
-                              active: selectedDay == 1,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 1;
-                                });
-                              },
-                            ),
-
-                            DayCard(
-                              day: "Rab",
-                              date: "3",
-                              active: selectedDay == 2,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 2;
-                                });
-                              },
-                            ),
-
-                            DayCard(
-                              day: "Kam",
-                              date: "4",
-                              active: selectedDay == 3,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 3;
-                                });
-                              },
-                            ),
-
-                            DayCard(
-                              day: "Jum",
-                              date: "5",
-                              active: selectedDay == 4,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 4;
-                                });
-                              },
-                            ),
-
-                            DayCard(
-                              day: "Sab",
-                              date: "6",
-                              active: selectedDay == 5,
-                              onTap: () {
-                                setState(() {
-                                  selectedDay = 5;
-                                });
-                              },
-                            ),
-                          ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DayCard(
+                          day: "Sen",
+                          date: "1",
+                          active: selectedDay == 0,
+                          onTap: () => setState(() => selectedDay = 0),
                         ),
+                        DayCard(
+                          day: "Sel",
+                          date: "2",
+                          active: selectedDay == 1,
+                          onTap: () => setState(() => selectedDay = 1),
+                        ),
+                        DayCard(
+                          day: "Rab",
+                          date: "3",
+                          active: selectedDay == 2,
+                          onTap: () => setState(() => selectedDay = 2),
+                        ),
+                        DayCard(
+                          day: "Kam",
+                          date: "4",
+                          active: selectedDay == 3,
+                          onTap: () => setState(() => selectedDay = 3),
+                        ),
+                        DayCard(
+                          day: "Jum",
+                          date: "5",
+                          active: selectedDay == 4,
+                          onTap: () => setState(() => selectedDay = 4),
+                        ),
+                        DayCard(
+                          day: "Sab",
+                          date: "6",
+                          active: selectedDay == 5,
+                          onTap: () => setState(() => selectedDay = 5),
+                        ),
+                      ],
+                    ),
 
                     const SizedBox(height: 22),
 
@@ -306,7 +285,6 @@ class _UserHomePageState extends State<UserHomePage> {
                       children: [
                         Expanded(
                           child: PackageSmallCard(
-                            icon: Icons.stars,
                             title: "Paket Pro",
                             subtitle: "Bisa Custom",
                           ),
@@ -314,7 +292,6 @@ class _UserHomePageState extends State<UserHomePage> {
                         SizedBox(width: 14),
                         Expanded(
                           child: PackageSmallCard(
-                            icon: Icons.flash_on,
                             title: "Mode Hemat",
                             subtitle: "Mulai Rp. 15rb",
                           ),
@@ -333,19 +310,17 @@ class _UserHomePageState extends State<UserHomePage> {
 
       bottomNavigationBar: Container(
         height: 65,
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFB84D),
-        ),
-        child: const Row(
+        color: const Color(0xFFFFB84D),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            BottomMenu(icon: Icons.home, title: "Home", active: true),
-            BottomMenu(
+            const BottomMenu(icon: Icons.home, title: "Home", active: true),
+            const BottomMenu(
               icon: Icons.restaurant,
               title: "Paket",
               page: PackagePage(),
             ),
-            BottomMenu(
+            const BottomMenu(
               icon: Icons.badge,
               title: "Dasbor",
               page: DashboardPage(),
@@ -353,7 +328,10 @@ class _UserHomePageState extends State<UserHomePage> {
             BottomMenu(
               icon: Icons.person,
               title: "Profile",
-              page: ProfilePage(),
+              page: ProfilePage(
+                name: widget.name,
+                email: widget.email,
+              ),
             ),
           ],
         ),
@@ -383,14 +361,8 @@ class _UserHomePageState extends State<UserHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 12),
-                ),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(fontSize: 12)),
               ],
             ),
           ],
@@ -420,9 +392,7 @@ class CategoryCard extends StatelessWidget {
           : () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => page!,
-                ),
+                MaterialPageRoute(builder: (context) => page!),
               );
             },
       child: Container(
@@ -467,37 +437,23 @@ class DayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-
       child: Container(
         width: 42,
         padding: const EdgeInsets.symmetric(vertical: 6),
-
         decoration: BoxDecoration(
-          color: active
-              ? const Color(0xFFFFD98F)
-              : const Color(0xFFFFF1D9),
-
+          color: active ? const Color(0xFFFFD98F) : const Color(0xFFFFF1D9),
           border: Border.all(
             color: active ? Colors.orange : Colors.black26,
           ),
-
           borderRadius: BorderRadius.circular(15),
         ),
-
         child: Column(
           children: [
-
-            Text(
-              day,
-              style: const TextStyle(fontSize: 10),
-            ),
-
+            Text(day, style: const TextStyle(fontSize: 10)),
             const SizedBox(height: 2),
-
             CircleAvatar(
               radius: 10,
               backgroundColor: Colors.white,
-
               child: Text(
                 date,
                 style: const TextStyle(
@@ -515,13 +471,11 @@ class DayCard extends StatelessWidget {
 }
 
 class PackageSmallCard extends StatelessWidget {
-  final IconData icon;
   final String title;
   final String subtitle;
 
   const PackageSmallCard({
     super.key,
-    required this.icon,
     required this.title,
     required this.subtitle,
   });
@@ -535,13 +489,6 @@ class PackageSmallCard extends StatelessWidget {
         color: const Color(0xFFFFE4B8),
         border: Border.all(color: Colors.black, width: 1.3),
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            blurRadius: 3,
-            offset: Offset(1, 2),
-            color: Colors.black26,
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -556,22 +503,12 @@ class PackageSmallCard extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 11),
-                ),
-              ],
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 15,
+              ),
             ),
           ),
         ],
@@ -600,7 +537,7 @@ class BottomMenu extends StatelessWidget {
       onTap: page == null
           ? null
           : () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => page!),
               );
