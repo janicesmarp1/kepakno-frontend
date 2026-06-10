@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'admin_signup.dart';
-import 'dashboard_page.dart';
+import 'admin_dashboard_page.dart';
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -30,8 +30,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': emailController.text,
-          'password': passwordController.text,
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
         }),
       );
 
@@ -49,23 +49,17 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Akun ini bukan admin'),
-            ),
+            const SnackBar(content: Text('Akun ini bukan admin')),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message'] ?? 'Login admin gagal'),
-          ),
+          SnackBar(content: Text(data['message'] ?? 'Login admin gagal')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tidak bisa terhubung ke backend'),
-        ),
+        const SnackBar(content: Text('Tidak bisa terhubung ke backend')),
       );
     }
 
@@ -84,9 +78,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   static InputDecoration inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(
-        color: Colors.grey.shade400,
-      ),
+      hintStyle: TextStyle(color: Colors.grey.shade400),
       filled: true,
       fillColor: Colors.white.withOpacity(0.7),
       contentPadding: const EdgeInsets.symmetric(
@@ -123,7 +115,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 40),
-
                 const Text(
                   "ADMIN",
                   style: TextStyle(
@@ -133,9 +124,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 const Text(
                   "LOG IN",
                   style: TextStyle(
@@ -145,25 +134,19 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 120),
-
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: inputDecoration("Enter your email"),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: inputDecoration("Enter your password"),
                 ),
-
                 const Spacer(),
-
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -188,9 +171,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           ),
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -208,7 +189,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 35),
               ],
             ),

@@ -7,11 +7,7 @@ class UserHomePage extends StatefulWidget {
   final String name;
   final String email;
 
-  const UserHomePage({
-    super.key,
-    required this.name,
-    required this.email,
-  });
+  const UserHomePage({super.key, required this.name, required this.email});
 
   @override
   State<UserHomePage> createState() => _UserHomePageState();
@@ -37,13 +33,21 @@ class _UserHomePageState extends State<UserHomePage> {
                   const CircleAvatar(
                     radius: 15,
                     backgroundColor: Colors.black,
-                    child: Icon(Icons.person, color: Color(0xFFFFB84D), size: 20),
+                    child: Icon(
+                      Icons.person,
+                      color: Color(0xFFFFB84D),
+                      size: 20,
+                    ),
                   ),
                   Text(
                     "Hi, ${widget.name}",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const Icon(Icons.notifications, color: Colors.black, size: 28),
+                  const Icon(
+                    Icons.notifications,
+                    color: Colors.black,
+                    size: 28,
+                  ),
                 ],
               ),
             ),
@@ -141,7 +145,8 @@ class _UserHomePageState extends State<UserHomePage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const PackagePage(),
+                                          builder: (context) =>
+                                              const PackagePage(),
                                         ),
                                       );
                                     },
@@ -227,6 +232,23 @@ class _UserHomePageState extends State<UserHomePage> {
                       ],
                     ),
 
+                    const SizedBox(height: 14),
+
+                    Center(
+                      child: SizedBox(
+                        width: 230,
+                        child: PackageSmallCard(
+                          title: "Mode Hemat",
+                          subtitle: "Mulai Rp. 15rb",
+                          page: PackagePage(
+                            name: widget.name,
+                            email: widget.email,
+                            scrollTo: "promo",
+                          ),
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 20),
 
                     const Row(
@@ -239,10 +261,7 @@ class _UserHomePageState extends State<UserHomePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          "Lihat Semua",
-                          style: TextStyle(fontSize: 11),
-                        ),
+                        Text("Lihat Semua", style: TextStyle(fontSize: 11)),
                       ],
                     ),
 
@@ -281,7 +300,8 @@ class _UserHomePageState extends State<UserHomePage> {
 
                         DayCard(
                           day: "Jum",
-                          date: "5",
+                          date: "",
+                          muted: true,
                           active: selectedDay == 4,
                           onTap: () => setState(() => selectedDay = 4),
                         ),
@@ -291,38 +311,6 @@ class _UserHomePageState extends State<UserHomePage> {
                           date: "6",
                           active: selectedDay == 5,
                           onTap: () => setState(() => selectedDay = 5),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PackageSmallCard(
-                            title: "Paket Pro",
-                            subtitle: "Bisa Custom",
-                            page: PackagePage(
-                              name: widget.name,
-                              email: widget.email,
-                              scrollTo: "promo",
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 14),
-
-                        Expanded(
-                          child: PackageSmallCard(
-                            title: "Mode Hemat",
-                            subtitle: "Mulai Rp. 15rb",
-                            page: PackagePage(
-                              name: widget.name,
-                              email: widget.email,
-                              scrollTo: "promo",
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -356,10 +344,7 @@ class _UserHomePageState extends State<UserHomePage> {
             BottomMenu(
               icon: Icons.person,
               title: "Profile",
-              page: ProfilePage(
-                name: widget.name,
-                email: widget.email,
-              ),
+              page: ProfilePage(name: widget.name, email: widget.email),
             ),
           ],
         ),
@@ -389,7 +374,10 @@ class _UserHomePageState extends State<UserHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(subtitle, style: const TextStyle(fontSize: 12)),
               ],
             ),
@@ -427,6 +415,13 @@ class CategoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFFFE4B8),
           borderRadius: BorderRadius.circular(4),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 12,
+              offset: Offset(0, 6),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -435,10 +430,7 @@ class CategoryCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-              ),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -451,6 +443,7 @@ class DayCard extends StatelessWidget {
   final String day;
   final String date;
   final bool active;
+  final bool muted;
   final VoidCallback onTap;
 
   const DayCard({
@@ -459,6 +452,7 @@ class DayCard extends StatelessWidget {
     required this.date,
     required this.onTap,
     this.active = false,
+    this.muted = false,
   });
 
   @override
@@ -466,8 +460,8 @@ class DayCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: 42,
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        width: 48,
+        padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
           color: active ? const Color(0xFFFFD98F) : const Color(0xFFFFF1D9),
           border: Border.all(color: active ? Colors.orange : Colors.black26),
@@ -475,19 +469,30 @@ class DayCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(day, style: const TextStyle(fontSize: 10)),
-            const SizedBox(height: 2),
-            CircleAvatar(
-              radius: 10,
-              backgroundColor: Colors.white,
-              child: Text(
-                date,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text(
+              day,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 23,
+              height: 23,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black),
               ),
+              child: muted
+                  ? const Icon(Icons.volume_off, size: 14, color: Colors.black)
+                  : Text(
+                      date,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -524,36 +529,40 @@ class PackageSmallCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: const Color(0xFFFFE4B8),
-          border: Border.all(color: Colors.black, width: 1.3),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 15,
-              backgroundColor: Colors.black,
-              child: Icon(
-                Icons.restaurant,
-                color: Color(0xFFFFE4B8),
-                size: 20,
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: Colors.orange, width: 1.6),
               ),
+              child: const Icon(Icons.bolt, color: Colors.black, size: 22),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     title,
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 15,
+                      fontSize: 17,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 11),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
                 ],
               ),
@@ -591,17 +600,22 @@ class BottomMenu extends StatelessWidget {
               );
             },
       child: Container(
-        width: 54,
+        width: 64,
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF89C66B) : Colors.transparent,
+          color: active ? const Color(0xFFE08A1E) : Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 24, color: Colors.black),
-            Text(title, style: const TextStyle(fontSize: 10)),
+            Icon(icon, size: 21, color: Colors.black),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 10, color: Colors.black),
+            ),
           ],
         ),
       ),

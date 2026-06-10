@@ -8,11 +8,7 @@ class ProfilePage extends StatelessWidget {
   final String name;
   final String email;
 
-  const ProfilePage({
-    super.key,
-    required this.name,
-    required this.email,
-  });
+  const ProfilePage({super.key, required this.name, required this.email});
 
   @override
   Widget build(BuildContext context) {
@@ -220,10 +216,7 @@ class ProfilePage extends StatelessWidget {
                           );
                         },
 
-                        icon: const Icon(
-                          Icons.logout,
-                          color: Colors.redAccent,
-                        ),
+                        icon: const Icon(Icons.logout, color: Colors.redAccent),
 
                         label: const Text(
                           "Keluar Akun",
@@ -234,9 +227,7 @@ class ProfilePage extends StatelessWidget {
                         ),
 
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                            color: Colors.redAccent,
-                          ),
+                          side: const BorderSide(color: Colors.redAccent),
 
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -263,10 +254,7 @@ class ProfilePage extends StatelessWidget {
             ProfileBottomMenu(
               icon: Icons.home,
               title: "Home",
-              page: UserHomePage(
-                name: name,
-                email: email,
-              ),
+              page: UserHomePage(name: name, email: email),
             ),
 
             const ProfileBottomMenu(
@@ -325,10 +313,7 @@ class StatCard extends StatelessWidget {
 
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 15,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
           ),
 
           Text(
@@ -342,10 +327,7 @@ class StatCard extends StatelessWidget {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 9,
-              color: Colors.black54,
-            ),
+            style: const TextStyle(fontSize: 9, color: Colors.black54),
           ),
         ],
       ),
@@ -405,11 +387,7 @@ class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
 
-  const ProfileMenuItem({
-    super.key,
-    required this.icon,
-    required this.title,
-  });
+  const ProfileMenuItem({super.key, required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -424,12 +402,7 @@ class ProfileMenuItem extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(fontSize: 13),
-              ),
-            ),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 13))),
 
             const Icon(Icons.chevron_right, size: 20),
           ],
@@ -461,32 +434,31 @@ class ProfileBottomMenu extends StatelessWidget {
           : () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => page!,
-                ),
+                MaterialPageRoute(builder: (context) => page!),
               );
             },
 
       child: Container(
-        width: 54,
+        width: 64,
         padding: const EdgeInsets.symmetric(vertical: 6),
 
         decoration: BoxDecoration(
-          color: active
-              ? const Color(0xFF89C66B)
-              : Colors.transparent,
+          color: active ? const Color(0xFFE08A1E) : Colors.white,
 
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black),
         ),
 
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 24, color: Colors.black),
+            Icon(icon, size: 21, color: Colors.black),
+
+            const SizedBox(height: 2),
 
             Text(
               title,
-              style: const TextStyle(fontSize: 10),
+              style: const TextStyle(fontSize: 10, color: Colors.black),
             ),
           ],
         ),

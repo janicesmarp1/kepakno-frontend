@@ -10,81 +10,124 @@ class OpeningPage extends StatefulWidget {
 }
 
 class _OpeningPageState extends State<OpeningPage> {
-  final PageController _controller = PageController();
-  int currentPage = 0;
+  bool _showLogo = true;
+  bool _showWelcome = false;
+  bool _moveWelcomeUp = false;
+  final List<Timer> _timers = [];
 
   @override
   void initState() {
     super.initState();
+    _startOpeningSequence();
+  }
 
-    Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (currentPage < 2) {
-        currentPage++;
-        _controller.animateToPage(
-          currentPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        timer.cancel();
+  void _startOpeningSequence() {
+    _timers.add(
+      Timer(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        setState(() {
+          _showLogo = false;
+          _showWelcome = true;
+        });
+      }),
+    );
+
+    _timers.add(
+      Timer(const Duration(milliseconds: 2200), () {
+        if (!mounted) return;
+        setState(() {
+          _moveWelcomeUp = true;
+        });
+      }),
+    );
+
+    _timers.add(
+      Timer(const Duration(milliseconds: 3300), () {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => const WelcomePage(),
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 650),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const WelcomePage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  final curved = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  );
+
+                  return Container(
+                    color: const Color(0xFFFFB84D),
+                    child: FadeTransition(
+                      opacity: curved,
+                      child: ScaleTransition(
+                        scale: Tween<double>(
+                          begin: 0.94,
+                          end: 1,
+                        ).animate(curved),
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
           ),
         );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Widget openingScreen({Widget? child}) {
-    return Container(
-      color: const Color(0xFFFFB84D),
-      child: Center(child: child),
+      }),
     );
   }
 
   @override
+  void dispose() {
+    for (final timer in _timers) {
+      timer.cancel();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      body: PageView(
-        controller: _controller,
-        physics: const NeverScrollableScrollPhysics(),
+      backgroundColor: const Color(0xFFFFB84D),
+      body: Stack(
         children: [
-          openingScreen(
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF1D9),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 450),
+            opacity: _showLogo ? 1 : 0,
+            child: Center(
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeOutBack,
+                scale: _showLogo ? 1 : 0.86,
                 child: Image.asset(
-                  'assets/images/logoKepakno.jpeg',
+                  'assets/images/logo.png',
+                  width: 120,
+                  height: 120,
                   fit: BoxFit.contain,
                 ),
               ),
             ),
           ),
-
-          openingScreen(),
-
-          openingScreen(
-            child: const Text(
-              "WELCOME",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOutCubic,
+            top: _moveWelcomeUp ? screenHeight * 0.18 : screenHeight * 0.45,
+            left: 0,
+            right: 0,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 500),
+              opacity: _showWelcome ? 1 : 0,
+              child: const Text(
+                'WELCOME',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
           ),

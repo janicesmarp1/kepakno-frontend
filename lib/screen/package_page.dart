@@ -59,40 +59,35 @@ class _PackagePageState extends State<PackagePage> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
 
-    body: SafeArea(
-      child: Column(
-        children: [
-
-          Container(
-            height: 54,
-            color: const Color(0xFFFFB84D),
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.black,
-                  child: Icon(
-                    Icons.person,
-                    color: Color(0xFFFFB84D),
-                    size: 20,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              height: 54,
+              color: const Color(0xFFFFB84D),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CircleAvatar(
+                    radius: 15,
+                    backgroundColor: Colors.black,
+                    child: Icon(
+                      Icons.person,
+                      color: Color(0xFFFFB84D),
+                      size: 20,
+                    ),
                   ),
-                ),
 
-                Icon(
-                  Icons.notifications,
-                  color: Colors.black,
-                  size: 28,
-                ),
-              ],
+                  Icon(Icons.notifications, color: Colors.black, size: 28),
+                ],
+              ),
             ),
-          ),
 
             Expanded(
               child: SingleChildScrollView(
@@ -242,10 +237,7 @@ Widget build(BuildContext context) {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -280,10 +272,7 @@ Widget build(BuildContext context) {
           Expanded(
             flex: 5,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 8,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,6 +327,7 @@ Widget build(BuildContext context) {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withValues(alpha: 0.1),
@@ -365,20 +355,22 @@ Widget build(BuildContext context) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  spacing: 12,
-                  runSpacing: 4,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     Text(
                       price,
+                      textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 18,
                         color: Colors.green,
@@ -387,22 +379,22 @@ Widget build(BuildContext context) {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 7),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+                    horizontal: 16,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(5),
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   child: const Text(
                     "TOP",
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
@@ -412,21 +404,33 @@ Widget build(BuildContext context) {
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 15),
-                SizedBox(
+                Container(
                   width: double.infinity,
                   height: 45,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x33000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
+                      elevation: 0,
                       backgroundColor: const Color(0xFFFFBF5E),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(999),
                       ),
                     ),
                     child: const Text(
                       "Pesan Sekarang",
                       style: TextStyle(
-                        color: Colors.white,
+                        fontFamily: "Georgia",
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -476,17 +480,22 @@ class PackageBottomMenu extends StatelessWidget {
               );
             },
       child: Container(
-        width: 54,
+        width: 64,
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF89C66B) : Colors.transparent,
+          color: active ? const Color(0xFFE08A1E) : Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 24, color: Colors.black),
-            Text(title, style: const TextStyle(fontSize: 10)),
+            Icon(icon, size: 21, color: Colors.black),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 10, color: Colors.black),
+            ),
           ],
         ),
       ),
