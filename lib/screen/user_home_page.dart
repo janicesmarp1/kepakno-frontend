@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kepakno_app/screen/package_page.dart';
 import 'package:kepakno_app/screen/dashboard_page.dart';
 import 'package:kepakno_app/screen/profile_page.dart';
-import 'package:kepakno_app/screen/saldo_page.dart'; // IMPORT PENTING: Untuk mengenalkan halaman Saldo
+import 'package:kepakno_app/screen/saldo_page.dart'; 
 
 class UserHomePage extends StatefulWidget {
   final String name;
@@ -64,7 +64,8 @@ class _UserHomePageState extends State<UserHomePage> {
                         _infoBox(
                           icon: Icons.account_balance_wallet,
                           title: "Saldo",
-                          subtitle: "Rp. 0",
+                          // --- 1. UBAH DI SINI: MENGAMBIL SALDO GLOBAL ---
+                          subtitle: "Rp. ${formatRupiah(globalSaldo)}",
                           color: const Color(0xFFFFD98F),
                           // --- DI SINI KUNCI KLIKNYA ---
                           onTap: () {
@@ -76,7 +77,9 @@ class _UserHomePageState extends State<UserHomePage> {
                                   email: widget.email,
                                 ),
                               ),
-                            );
+                            ).then(
+                              (_) => setState(() {}),
+                            ); // --- 2. UBAH DI SINI: REFRESH HALAMAN SAAT KEMBALI ---
                           },
                         ),
                         const SizedBox(width: 14),
