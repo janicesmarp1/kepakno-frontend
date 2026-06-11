@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kepakno_app/screen/package_page.dart';
 import 'package:kepakno_app/screen/dashboard_page.dart';
 import 'package:kepakno_app/screen/profile_page.dart';
+import 'package:kepakno_app/screen/saldo_page.dart'; // IMPORT PENTING: Untuk mengenalkan halaman Saldo
 
 class UserHomePage extends StatefulWidget {
   final String name;
@@ -65,6 +66,18 @@ class _UserHomePageState extends State<UserHomePage> {
                           title: "Saldo",
                           subtitle: "Rp. 0",
                           color: const Color(0xFFFFD98F),
+                          // --- DI SINI KUNCI KLIKNYA ---
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SaldoPage(
+                                  name: widget.name,
+                                  email: widget.email,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(width: 14),
                         _infoBox(
@@ -145,8 +158,11 @@ class _UserHomePageState extends State<UserHomePage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              const PackagePage(),
+                                          builder: (context) => PackagePage(
+                                            name: widget.name,
+                                            email: widget.email,
+                                            scrollTo: "promo",
+                                          ),
                                         ),
                                       );
                                     },
@@ -331,15 +347,19 @@ class _UserHomePageState extends State<UserHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             const BottomMenu(icon: Icons.home, title: "Home", active: true),
-            const BottomMenu(
+            BottomMenu(
               icon: Icons.restaurant,
               title: "Paket",
-              page: PackagePage(),
+              page: PackagePage(
+                name: widget.name,
+                email: widget.email,
+                scrollTo: "",
+              ),
             ),
-            const BottomMenu(
+            BottomMenu(
               icon: Icons.badge,
               title: "Dasbor",
-              page: DashboardPage(),
+              page: DashboardPage(name: widget.name, email: widget.email),
             ),
             BottomMenu(
               icon: Icons.person,
@@ -352,36 +372,43 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 
+  // --- INFOBOX YANG SUDAH DIBUNGKUS INKWELL AGAR BISA DIKLIK ---
   static Widget _infoBox({
     required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
+    VoidCallback? onTap, // <-- Parameter tambahan buat klik
   }) {
     return Expanded(
-      child: Container(
-        height: 68,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 10),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(subtitle, style: const TextStyle(fontSize: 12)),
-              ],
-            ),
-          ],
+      child: InkWell(
+        // <-- Pembungkus fungsi klik
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(5),
+        child: Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 10),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(subtitle, style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
