@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'user_home_page.dart';
 import 'dashboard_page.dart';
 import 'profile_page.dart';
+import 'checkout_page.dart';
 
 class PackagePage extends StatefulWidget {
   final String name;
@@ -63,7 +64,6 @@ class _PackagePageState extends State<PackagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Column(
           children: [
@@ -83,12 +83,10 @@ class _PackagePageState extends State<PackagePage> {
                       size: 20,
                     ),
                   ),
-
                   Icon(Icons.notifications, color: Colors.black, size: 28),
                 ],
               ),
             ),
-
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -109,7 +107,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Nasi goreng dengan telur mata sapi dan ayam suwir. Menu praktis dengan energi cukup untuk aktivitas pagi.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1612927601601-6638404737ce?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=500&auto=format&fit=crop",
                     ),
                     _buildPackageItem(
                       context,
@@ -118,7 +116,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Sandwich sehat dengan sayuran segar, telur, dan isian daging pilihan yang pas untuk sarapan ringan.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1509722747041-616f39b57569?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1481070414801-51fd732d7184?q=80&w=500&auto=format&fit=crop",
                     ),
 
                     const SizedBox(height: 25),
@@ -132,7 +130,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Daging ayam fillet krispi disiram kuah kari kental yang gurih khas Jepang, disajikan dengan nasi hangat.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1690373957252-0fbc49eb692b?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1604503468506-a8da13d82791?q=80&w=500&auto=format&fit=crop",
                     ),
                     _buildPackageItem(
                       context,
@@ -141,7 +139,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Ayam goreng tepung renyah yang digeprek dengan sambal bawang super pedas. Disajikan dengan nasi dan lalapan segar.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=500&auto=format&fit=crop",
                     ),
 
                     const SizedBox(height: 25),
@@ -155,7 +153,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Potongan ayam lembut berbalut saus teriyaki manis gurih dengan taburan wijen di atas nasi hangat.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1574484284002-952d92456975?q=80&w=500&auto=format&fit=crop",
                     ),
                     _buildPackageItem(
                       context,
@@ -164,7 +162,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Daging sapi pilihan yang dimasak lama dengan rempah-rempah tradisional kaya rasa dan santan kental.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=500&auto=format&fit=crop",
                     ),
 
                     const SizedBox(height: 25),
@@ -178,7 +176,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Lumpia renyah dengan isian rebung, ayam, atau sayuran gurih. Cocok untuk menemani waktu santai kuliah.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=500&auto=format&fit=crop",
                     ),
                     _buildPackageItem(
                       context,
@@ -187,7 +185,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Risoles dengan kulit lembut dan isian smoked beef, telur rebus, serta lelehan mayonnaise premium yang lumer.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1628102476696-f84e49963c3e?q=80&w=500&auto=format&fit=crop",
+                          "https://images.unsplash.com/photo-1605333398744-8d9e60ea9b00?q=80&w=500&auto=format&fit=crop",
                     ),
 
                     const SizedBox(height: 20),
@@ -198,7 +196,6 @@ class _PackagePageState extends State<PackagePage> {
           ],
         ),
       ),
-
       bottomNavigationBar: Container(
         height: 65,
         color: const Color(0xFFFFB84D),
@@ -260,7 +257,7 @@ class _PackagePageState extends State<PackagePage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
-                  "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=400&auto=format&fit=crop",
+                  "https://images.unsplash.com/photo-1565557613262-b91c13d7890f?q=80&w=500&auto=format&fit=crop",
                   fit: BoxFit.cover,
                   height: double.infinity,
                   errorBuilder: (context, error, stackTrace) =>
@@ -296,7 +293,17 @@ class _PackagePageState extends State<PackagePage> {
                   ),
                   const SizedBox(height: 6),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CheckoutPage(
+                            name: widget.name,
+                            email: widget.email,
+                          ),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFBF5E),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -418,7 +425,17 @@ class _PackagePageState extends State<PackagePage> {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CheckoutPage(
+                            name: widget.name,
+                            email: widget.email,
+                          ),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
                       backgroundColor: const Color(0xFFFFBF5E),
