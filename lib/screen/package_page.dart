@@ -105,9 +105,9 @@ class _PackagePageState extends State<PackagePage> {
                       title: "Nasi Goreng Pagi",
                       price: "Rp17.000",
                       description:
-                          "Nasi goreng dengan telur mata sapi dan ayam suwir. Menu praktis dengan energi cukup untuk aktivitas pagi.",
+                          "Nasi goreng sosis yang gurih dan nikmat. Menu praktis dengan energi cukup untuk aktivitas pagi.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=500&auto=format&fit=crop",
+                          "https://akcdn.detik.net.id/community/media/visual/2021/08/25/resep-nasi-goreng-sosis-ala-warung-bhakti_43.jpeg?w=700&q=90",
                     ),
                     _buildPackageItem(
                       context,
@@ -116,7 +116,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Sandwich sehat dengan sayuran segar, telur, dan isian daging pilihan yang pas untuk sarapan ringan.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1481070414801-51fd732d7184?q=80&w=500&auto=format&fit=crop",
+                          "https://www.southernliving.com/thmb/TW2iJ6-7F-BAy35Q_EYW5wnIHGI=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/Ham_Sandwich_011-1-49227336bc074513aaf8fdbde440eafe.jpg",
                     ),
 
                     const SizedBox(height: 25),
@@ -130,7 +130,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Daging ayam fillet krispi disiram kuah kari kental yang gurih khas Jepang, disajikan dengan nasi hangat.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1604503468506-a8da13d82791?q=80&w=500&auto=format&fit=crop",
+                          "https://akcdn.detik.net.id/customthumb/2016/02/26/297/125357_katsucurrycvr.jpg?w=700&q=90",
                     ),
                     _buildPackageItem(
                       context,
@@ -139,7 +139,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Ayam goreng tepung renyah yang digeprek dengan sambal bawang super pedas. Disajikan dengan nasi dan lalapan segar.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=500&auto=format&fit=crop",
+                          "https://ayomakan.oss-ap-southeast-5.aliyuncs.com/general/92009b3d007913c0f689f6797be2c3c8.jpg",
                     ),
 
                     const SizedBox(height: 25),
@@ -153,7 +153,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Potongan ayam lembut berbalut saus teriyaki manis gurih dengan taburan wijen di atas nasi hangat.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1574484284002-952d92456975?q=80&w=500&auto=format&fit=crop",
+                          "https://www.frisianflag.com/storage/app/media/uploaded-files/ayam-teriyaki-crispy.jpg",
                     ),
                     _buildPackageItem(
                       context,
@@ -162,7 +162,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Daging sapi pilihan yang dimasak lama dengan rempah-rempah tradisional kaya rasa dan santan kental.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=500&auto=format&fit=crop",
+                          "https://parto.id/asset/foto_produk/2252011256.jpeg",
                     ),
 
                     const SizedBox(height: 25),
@@ -176,7 +176,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Lumpia renyah dengan isian rebung, ayam, atau sayuran gurih. Cocok untuk menemani waktu santai kuliah.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=500&auto=format&fit=crop",
+                          "https://akcdn.detik.net.id/community/media/visual/2021/08/10/resep-lumpia-udang-gulung_43.jpeg?w=700&q=90",
                     ),
                     _buildPackageItem(
                       context,
@@ -185,7 +185,7 @@ class _PackagePageState extends State<PackagePage> {
                       description:
                           "Risoles dengan kulit lembut dan isian smoked beef, telur rebus, serta lelehan mayonnaise premium yang lumer.",
                       imageUrl:
-                          "https://images.unsplash.com/photo-1605333398744-8d9e60ea9b00?q=80&w=500&auto=format&fit=crop",
+                          "https://akcdn.detik.net.id/community/media/visual/2023/04/12/risol-mayo_43.jpeg?w=700&q=90",
                     ),
 
                     const SizedBox(height: 20),
@@ -257,7 +257,7 @@ class _PackagePageState extends State<PackagePage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
-                  "https://images.unsplash.com/photo-1565557613262-b91c13d7890f?q=80&w=500&auto=format&fit=crop",
+                  "https://assets.telkomsel.com/public/2025-07/resep-nasi-kebuli.png?VersionId=JQO2CxWWDDUzKUPcgqvwj6OKTn8cwKE0",
                   fit: BoxFit.cover,
                   height: double.infinity,
                   errorBuilder: (context, error, stackTrace) =>
@@ -300,6 +300,11 @@ class _PackagePageState extends State<PackagePage> {
                           builder: (context) => CheckoutPage(
                             name: widget.name,
                             email: widget.email,
+                            paketName: "Paket Nasi Kebuli (Promo)",
+                            paketDesc:
+                                "- Nasi Kebuli + Sate\n- Gule + Sambal Goreng\n- Acar + Pisang",
+                            hargaString: "Rp20.000",
+                            hargaInt: 20000,
                           ),
                         ),
                       );
@@ -329,6 +334,10 @@ class _PackagePageState extends State<PackagePage> {
     required String description,
     required String imageUrl,
   }) {
+    // Mengekstrak angka dari text harga. Contoh: "Rp17.000" jadi 17000
+    int parsedHarga =
+        int.tryParse(price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
@@ -432,6 +441,11 @@ class _PackagePageState extends State<PackagePage> {
                           builder: (context) => CheckoutPage(
                             name: widget.name,
                             email: widget.email,
+                            paketName: title, // Judul dinamis!
+                            paketDesc: description, // Deskripsi dinamis!
+                            hargaString: price, // Harga string dinamis!
+                            hargaInt:
+                                parsedHarga, // Harga angka untuk potong saldo dinamis!
                           ),
                         ),
                       );
