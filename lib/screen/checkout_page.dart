@@ -1,26 +1,35 @@
 import 'package:flutter/material.dart';
-import 'saldo_page.dart'; // Memanggil globalSaldo dan formatRupiah
+import 'saldo_page.dart';
 import 'user_home_page.dart';
 
-// Variabel global untuk menyimpan riwayat pesanan (bisa dipanggil di halaman Riwayat nanti)
 List<Map<String, dynamic>> globalRiwayatPesanan = [];
 
 class CheckoutPage extends StatefulWidget {
   final String name;
   final String email;
+  final String paketName; // Menangkap nama paket
+  final String paketDesc; // Menangkap detail paket
+  final String hargaString; // Menangkap teks harga (Rp...)
+  final int hargaInt; // Menangkap angka harga untuk dipotong dari saldo
 
-  const CheckoutPage({super.key, required this.name, required this.email});
+  const CheckoutPage({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.paketName,
+    required this.paketDesc,
+    required this.hargaString,
+    required this.hargaInt,
+  });
 
   @override
   State<CheckoutPage> createState() => _CheckoutPageState();
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final int totalPembayaran = 20000; // Total harga paket
-
   void _prosesPembayaran() {
-    if (globalSaldo < totalPembayaran) {
-      // JIKA SALDO KURANG
+    // Cek apakah saldo cukup dengan harga paket yang dipilih
+    if (globalSaldo < widget.hargaInt) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -32,20 +41,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
       );
     } else {
-      // JIKA SALDO CUKUP
       setState(() {
-        globalSaldo -= totalPembayaran; // Kurangi saldo
+        globalSaldo -= widget.hargaInt; // Saldo dipotong sesuai harga paket
       });
 
-      // Masukkan ke riwayat pemesanan
+      // Simpan riwayat dengan nama paket dinamis
       globalRiwayatPesanan.add({
-        "paket": "Paket Nasi Kebuli",
-        "harga": totalPembayaran,
+        "paket": widget.paketName,
+        "harga": widget.hargaInt,
         "tanggal": "1 Juni 2026",
         "status": "Berhasil",
       });
 
-      // Tampilkan notifikasi sukses
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -57,7 +64,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
       );
 
-      // Kembali ke Home Page untuk melihat saldo yang sudah berkurang
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -86,7 +92,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: SafeArea(
           child: Column(
             children: [
-              // --- HEADER ---
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -136,7 +141,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // --- CARD 1: PAKET ---
+                      // --- CARD 1: PAKET DINAMIS ---
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -150,32 +155,33 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Placeholder Gambar Paket
                                   Container(
                                     width: 100,
                                     height: 75,
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFFFE4B8),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Center(
+                                    child: Center(
                                       child: Text(
-                                        "PAKET\nNASI KEBULI",
+                                        widget.paketName.toUpperCase(),
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.w900,
-                                          fontSize: 12,
+                                          fontSize: 10,
                                           color: Colors.brown,
                                         ),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  // Detail Isi
                                   Expanded(
-                                    child: const Text(
-                                      "- Nasi kebuli\n- Sate\n- Gule\n- Sambal goreng ati kentang\n- Acar\n- Sambal kacang\n- Pisang",
-                                      style: TextStyle(
+                                    child: Text(
+                                      widget.paketDesc,
+                                      style: const TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
@@ -191,8 +197,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: const [
-                                  Text(
+                                children: [
+                                  const Text(
                                     "Harga paket",
                                     style: TextStyle(
                                       fontSize: 11,
@@ -201,8 +207,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     ),
                                   ),
                                   Text(
-                                    "Rp20.000",
-                                    style: TextStyle(
+                                    widget.hargaString,
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green,
@@ -216,7 +222,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // --- CARD 2: JADWAL ---
+                      // --- CARD JADWAL & ALAMAT TETAP ---
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -271,13 +277,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: Colors.black12),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 2,
-                                      offset: Offset(0, 1),
-                                    ),
-                                  ],
                                 ),
                                 child: const Text(
                                   "Ganti Jadwal",
@@ -294,7 +293,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // --- CARD 3: ALAMAT ---
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -341,13 +339,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: Colors.black12),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 2,
-                                      offset: Offset(0, 1),
-                                    ),
-                                  ],
                                 ),
                                 child: const Text(
                                   "Ganti Alamat",
@@ -364,7 +355,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // --- CARD 4: METODE PEMBAYARAN ---
+                      // --- CARD METODE PEMBAYARAN ---
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -431,7 +422,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // --- CARD 5: RINCIAN PEMBAYARAN ---
+                      // --- CARD RINCIAN DINAMIS ---
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -460,8 +451,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
-                                    children: const [
-                                      Text(
+                                    children: [
+                                      const Text(
                                         "Subtotal Pesanan",
                                         style: TextStyle(
                                           fontSize: 11,
@@ -469,8 +460,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                         ),
                                       ),
                                       Text(
-                                        "Rp.30.000",
-                                        style: TextStyle(
+                                        widget.hargaString,
+                                        style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.black54,
                                         ),
@@ -490,7 +481,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                         ),
                                       ),
                                       Text(
-                                        "-Rp.10.000",
+                                        "-Rp. 0",
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: Colors.redAccent,
@@ -502,8 +493,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
-                                    children: const [
-                                      Text(
+                                    children: [
+                                      const Text(
                                         "Total Pembayaran",
                                         style: TextStyle(
                                           fontSize: 12,
@@ -512,8 +503,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                         ),
                                       ),
                                       Text(
-                                        "Rp.20.000",
-                                        style: TextStyle(
+                                        widget.hargaString,
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black,
@@ -566,7 +557,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // --- TOMBOL KEMBALI ---
                       SizedBox(
                         width: double.infinity,
                         height: 50,
