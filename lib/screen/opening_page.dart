@@ -13,6 +13,7 @@ class _OpeningPageState extends State<OpeningPage> {
   bool _showLogo = true;
   bool _showWelcome = false;
   bool _moveWelcomeUp = false;
+  bool _showTransitionSplash = false;
   final List<Timer> _timers = [];
 
   @override
@@ -33,7 +34,7 @@ class _OpeningPageState extends State<OpeningPage> {
     );
 
     _timers.add(
-      Timer(const Duration(milliseconds: 2200), () {
+      Timer(const Duration(milliseconds: 2600), () {
         if (!mounted) return;
         setState(() {
           _moveWelcomeUp = true;
@@ -42,7 +43,16 @@ class _OpeningPageState extends State<OpeningPage> {
     );
 
     _timers.add(
-      Timer(const Duration(milliseconds: 3300), () {
+      Timer(const Duration(milliseconds: 3500), () {
+        if (!mounted) return;
+        setState(() {
+          _showTransitionSplash = true;
+        });
+      }),
+    );
+
+    _timers.add(
+      Timer(const Duration(milliseconds: 4100), () {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
@@ -87,7 +97,9 @@ class _OpeningPageState extends State<OpeningPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final titleTop = mediaQuery.padding.top + 50;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFB84D),
@@ -113,11 +125,12 @@ class _OpeningPageState extends State<OpeningPage> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 800),
             curve: Curves.easeInOutCubic,
-            top: _moveWelcomeUp ? screenHeight * 0.18 : screenHeight * 0.45,
+            top: _moveWelcomeUp ? titleTop : screenHeight * 0.45,
             left: 0,
             right: 0,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 500),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeInOutCubic,
               opacity: _showWelcome ? 1 : 0,
               child: const Text(
                 'WELCOME',
@@ -128,6 +141,17 @@ class _OpeningPageState extends State<OpeningPage> {
                   fontWeight: FontWeight.w900,
                   fontStyle: FontStyle.italic,
                 ),
+              ),
+            ),
+          ),
+          IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeInOutCubic,
+              opacity: _showTransitionSplash ? 1 : 0,
+              child: const ColoredBox(
+                color: Color(0xFFFFB84D),
+                child: SizedBox.expand(),
               ),
             ),
           ),

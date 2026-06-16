@@ -1,8 +1,121 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'user_home_page.dart';
+import 'package:http/http.dart' as http;
+
+import '../services/api_config.dart' as api;
+import 'checkout_page.dart';
 import 'dashboard_page.dart';
 import 'profile_page.dart';
-import 'checkout_page.dart';
+import 'user_home_page.dart';
+
+class MenuData {
+  final int id;
+  final String title;
+  final int price;
+  final String description;
+  final String imageUrl;
+  final String category;
+
+  const MenuData({
+    required this.id,
+    required this.title,
+    required this.price,
+    required this.description,
+    required this.imageUrl,
+    required this.category,
+  });
+
+  String get formattedPrice => _formatRupiah(price);
+
+  factory MenuData.fromJson(Map<String, dynamic> json) {
+    final kategori = _asMap(json['kategori']);
+    final paket = _asMap(json['paket']);
+
+    final rawImage = _readString(
+      json,
+      [
+        'gambar',
+        'gambar_menu',
+        'foto',
+        'foto_menu',
+        'image',
+        'image_url',
+        'url_gambar',
+      ],
+      fallback: '',
+    );
+
+    final categoryFromKategori = kategori == null
+        ? ''
+        : _readString(
+            kategori,
+            ['nama_kategori', 'nama'],
+            fallback: '',
+          );
+
+    final categoryFromPaket = paket == null
+        ? ''
+        : _readString(
+            paket,
+            ['jenis_paket', 'nama_paket'],
+            fallback: '',
+          );
+
+    final categoryFromJson = _readString(
+      json,
+      [
+        'nama_kategori',
+        'jenis_paket',
+        'category',
+        'kategori_menu',
+      ],
+      fallback: '',
+    );
+
+    final category = categoryFromKategori.isNotEmpty
+        ? categoryFromKategori
+        : categoryFromPaket.isNotEmpty
+            ? categoryFromPaket
+            : categoryFromJson.isNotEmpty
+                ? categoryFromJson
+                : 'lainnya';
+
+    return MenuData(
+      id: _readInt(json, ['menu_id', 'id', 'paket_id']),
+      title: _readString(
+        json,
+        [
+          'nama_menu',
+          'nama_paket',
+          'name',
+          'title',
+        ],
+        fallback: 'Menu',
+      ),
+      price: _readNumber(
+        json,
+        [
+          'harga_menu',
+          'harga',
+          'price',
+          'total',
+        ],
+      ).round(),
+      description: _readString(
+        json,
+        [
+          'deskripsi',
+          'description',
+          'keterangan',
+        ],
+        fallback: 'Tidak ada deskripsi menu.',
+      ),
+      imageUrl: _resolveImageUrl(rawImage),
+      category: category.toLowerCase(),
+    );
+  }
+}
 
 class PackagePage extends StatefulWidget {
   final String name;
@@ -26,10 +139,56 @@ class _PackagePageState extends State<PackagePage> {
   final makanSiangKey = GlobalKey();
   final makanMalamKey = GlobalKey();
   final snackKey = GlobalKey();
+  final lainnyaKey = GlobalKey();
+
+  late Future<List<MenuData>> _menusFuture;
+  bool _hasAutoScrolled = false;
 
   @override
   void initState() {
     super.initState();
+    _menusFuture = _fetchMenus();
+  }
+
+  Future<List<MenuData>> _fetchMenus() async {
+    final url = Uri.parse('${api.ApiConfig.menu}?page=1&limit=50');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = decoded is Map<String, dynamic>
+          ? decoded['message']?.toString()
+          : null;
+
+      throw Exception(message ?? 'Gagal memuat data menu');
+    }
+
+    final rawMenus = _extractList(decoded);
+
+    return rawMenus
+        .whereType<Map>()
+        .map((item) => MenuData.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  void _refreshMenus() {
+    setState(() {
+      _hasAutoScrolled = false;
+      _menusFuture = _fetchMenus();
+    });
+  }
+
+  void _autoScrollAfterDataLoaded() {
+    if (_hasAutoScrolled || widget.scrollTo.isEmpty) return;
+
+    _hasAutoScrolled = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToSection(widget.scrollTo);
@@ -60,6 +219,29 @@ class _PackagePageState extends State<PackagePage> {
     }
   }
 
+  bool _isSarapan(MenuData menu) {
+    final text = '${menu.title} ${menu.category}'.toLowerCase();
+    return text.contains('sarapan') || text.contains('pagi');
+  }
+
+  bool _isMakanSiang(MenuData menu) {
+    final text = '${menu.title} ${menu.category}'.toLowerCase();
+    return text.contains('siang') || text.contains('lunch');
+  }
+
+  bool _isMakanMalam(MenuData menu) {
+    final text = '${menu.title} ${menu.category}'.toLowerCase();
+    return text.contains('malam') || text.contains('dinner');
+  }
+
+  bool _isSnack(MenuData menu) {
+    final text = '${menu.title} ${menu.category}'.toLowerCase();
+    return text.contains('snack') ||
+        text.contains('ringan') ||
+        text.contains('cemilan') ||
+        text.contains('camilan');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,109 +270,101 @@ class _PackagePageState extends State<PackagePage> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    sectionTitle("Paket Promo", promoKey),
-                    const SizedBox(height: 12),
-                    _buildPromoBanner(),
+              child: FutureBuilder<List<MenuData>>(
+                future: _menusFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                    const SizedBox(height: 25),
+                  if (snapshot.hasError) {
+                    return _buildErrorState(snapshot.error.toString());
+                  }
 
-                    sectionTitle("Paket Sarapan", sarapanKey),
-                    const SizedBox(height: 12),
-                    _buildPackageItem(
-                      context,
-                      title: "Nasi Goreng Pagi",
-                      price: "Rp17.000",
-                      description:
-                          "Nasi goreng sosis yang gurih dan nikmat. Menu praktis dengan energi cukup untuk aktivitas pagi.",
-                      imageUrl:
-                          "https://akcdn.detik.net.id/community/media/visual/2021/08/25/resep-nasi-goreng-sosis-ala-warung-bhakti_43.jpeg?w=700&q=90",
+                  final menus = snapshot.data ?? <MenuData>[];
+
+                  final sarapan = menus.where(_isSarapan).toList();
+                  final makanSiang = menus.where(_isMakanSiang).toList();
+                  final makanMalam = menus.where(_isMakanMalam).toList();
+                  final snack = menus.where(_isSnack).toList();
+
+                  final categorizedMenus = <MenuData>[
+                    ...sarapan,
+                    ...makanSiang,
+                    ...makanMalam,
+                    ...snack,
+                  ];
+
+                  final lainnya = menus
+                      .where((menu) => !categorizedMenus.contains(menu))
+                      .toList();
+
+                  _autoScrollAfterDataLoaded();
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      _refreshMenus();
+                      await _menusFuture;
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          sectionTitle("Paket Promo", promoKey),
+                          const SizedBox(height: 12),
+                          _buildPromoBanner(
+                            menus.isNotEmpty ? menus.first : null,
+                          ),
+
+                          const SizedBox(height: 25),
+                          sectionTitle("Paket Sarapan", sarapanKey),
+                          const SizedBox(height: 12),
+                          _buildMenuSection(
+                            menus: sarapan,
+                            emptyMessage: 'Belum ada menu sarapan',
+                          ),
+
+                          const SizedBox(height: 25),
+                          sectionTitle("Paket Makan Siang", makanSiangKey),
+                          const SizedBox(height: 12),
+                          _buildMenuSection(
+                            menus: makanSiang,
+                            emptyMessage: 'Belum ada menu makan siang',
+                          ),
+
+                          const SizedBox(height: 25),
+                          sectionTitle("Paket Makan Malam", makanMalamKey),
+                          const SizedBox(height: 12),
+                          _buildMenuSection(
+                            menus: makanMalam,
+                            emptyMessage: 'Belum ada menu makan malam',
+                          ),
+
+                          const SizedBox(height: 25),
+                          sectionTitle("Snack", snackKey),
+                          const SizedBox(height: 12),
+                          _buildMenuSection(
+                            menus: snack,
+                            emptyMessage: 'Belum ada menu snack',
+                          ),
+
+                          if (lainnya.isNotEmpty) ...[
+                            const SizedBox(height: 25),
+                            sectionTitle("Menu Lainnya", lainnyaKey),
+                            const SizedBox(height: 12),
+                            _buildMenuSection(
+                              menus: lainnya,
+                              emptyMessage: 'Belum ada menu lainnya',
+                            ),
+                          ],
+
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
-                    _buildPackageItem(
-                      context,
-                      title: "Morning Sandwich Set",
-                      price: "Rp20.000",
-                      description:
-                          "Sandwich sehat dengan sayuran segar, telur, dan isian daging pilihan yang pas untuk sarapan ringan.",
-                      imageUrl:
-                          "https://www.southernliving.com/thmb/TW2iJ6-7F-BAy35Q_EYW5wnIHGI=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/Ham_Sandwich_011-1-49227336bc074513aaf8fdbde440eafe.jpg",
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    sectionTitle("Paket Makan Siang", makanSiangKey),
-                    const SizedBox(height: 12),
-                    _buildPackageItem(
-                      context,
-                      title: "Chicken Katsu Curry",
-                      price: "Rp30.000",
-                      description:
-                          "Daging ayam fillet krispi disiram kuah kari kental yang gurih khas Jepang, disajikan dengan nasi hangat.",
-                      imageUrl:
-                          "https://akcdn.detik.net.id/customthumb/2016/02/26/297/125357_katsucurrycvr.jpg?w=700&q=90",
-                    ),
-                    _buildPackageItem(
-                      context,
-                      title: "Nasi Ayam Geprek",
-                      price: "Rp20.000",
-                      description:
-                          "Ayam goreng tepung renyah yang digeprek dengan sambal bawang super pedas. Disajikan dengan nasi dan lalapan segar.",
-                      imageUrl:
-                          "https://ayomakan.oss-ap-southeast-5.aliyuncs.com/general/92009b3d007913c0f689f6797be2c3c8.jpg",
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    sectionTitle("Paket Makan Malam", makanMalamKey),
-                    const SizedBox(height: 12),
-                    _buildPackageItem(
-                      context,
-                      title: "Rice Bowl Ayam Teriyaki",
-                      price: "Rp25.000",
-                      description:
-                          "Potongan ayam lembut berbalut saus teriyaki manis gurih dengan taburan wijen di atas nasi hangat.",
-                      imageUrl:
-                          "https://www.frisianflag.com/storage/app/media/uploaded-files/ayam-teriyaki-crispy.jpg",
-                    ),
-                    _buildPackageItem(
-                      context,
-                      title: "Nasi Rendang",
-                      price: "Rp25.000",
-                      description:
-                          "Daging sapi pilihan yang dimasak lama dengan rempah-rempah tradisional kaya rasa dan santan kental.",
-                      imageUrl:
-                          "https://parto.id/asset/foto_produk/2252011256.jpeg",
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    sectionTitle("Snack", snackKey),
-                    const SizedBox(height: 12),
-                    _buildPackageItem(
-                      context,
-                      title: "Lumpia Goreng Spesial",
-                      price: "Rp25.000",
-                      description:
-                          "Lumpia renyah dengan isian rebung, ayam, atau sayuran gurih. Cocok untuk menemani waktu santai kuliah.",
-                      imageUrl:
-                          "https://akcdn.detik.net.id/community/media/visual/2021/08/10/resep-lumpia-udang-gulung_43.jpeg?w=700&q=90",
-                    ),
-                    _buildPackageItem(
-                      context,
-                      title: "Risoles Mayo Premium",
-                      price: "Rp25.000",
-                      description:
-                          "Risoles dengan kulit lembut dan isian smoked beef, telur rebus, serta lelehan mayonnaise premium yang lumer.",
-                      imageUrl:
-                          "https://akcdn.detik.net.id/community/media/visual/2023/04/12/risol-mayo_43.jpeg?w=700&q=90",
-                    ),
-
-                    const SizedBox(height: 20),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ],
@@ -239,7 +413,31 @@ class _PackagePageState extends State<PackagePage> {
     );
   }
 
-  Widget _buildPromoBanner() {
+  Widget _buildMenuSection({
+    required List<MenuData> menus,
+    required String emptyMessage,
+  }) {
+    if (menus.isEmpty) {
+      return _emptySection(emptyMessage);
+    }
+
+    return Column(
+      children: menus
+          .map(
+            (menu) => _buildPackageItem(
+              context,
+              menu: menu,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _buildPromoBanner(MenuData? menu) {
+    final title = menu?.title ?? 'Belum ada promo';
+    final description = menu?.description ?? 'Data promo belum tersedia.';
+    final imageUrl = menu?.imageUrl ?? '';
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       height: 180,
@@ -256,13 +454,16 @@ class _PackagePageState extends State<PackagePage> {
               padding: const EdgeInsets.all(12),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  "https://assets.telkomsel.com/public/2025-07/resep-nasi-kebuli.png?VersionId=JQO2CxWWDDUzKUPcgqvwj6OKTn8cwKE0",
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  errorBuilder: (context, error, stackTrace) =>
-                      _buildImagePlaceholder(),
-                ),
+                child: imageUrl.isEmpty
+                    ? _buildImagePlaceholder()
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                      ),
               ),
             ),
           ),
@@ -275,40 +476,36 @@ class _PackagePageState extends State<PackagePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "PROMO DISKON 20%",
+                    "PROMO PILIHAN",
                     style: TextStyle(
                       color: Colors.red,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
                   ),
-                  const Text(
-                    "Paket Nasi Kebuli",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 3),
-                  const Text(
-                    "- Nasi Kebuli + Sate\n- Gule + Sambal Goreng\n- Acar + Pisang",
-                    style: TextStyle(fontSize: 11, height: 1.2),
+                  Text(
+                    description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11, height: 1.2),
                   ),
                   const SizedBox(height: 6),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CheckoutPage(
-                            name: widget.name,
-                            email: widget.email,
-                            paketName: "Paket Nasi Kebuli (Promo)",
-                            paketDesc:
-                                "- Nasi Kebuli + Sate\n- Gule + Sambal Goreng\n- Acar + Pisang",
-                            hargaString: "Rp20.000",
-                            hargaInt: 20000,
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: menu == null
+                        ? null
+                        : () {
+                            _openCheckout(menu);
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFBF5E),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -329,15 +526,8 @@ class _PackagePageState extends State<PackagePage> {
 
   Widget _buildPackageItem(
     BuildContext context, {
-    required String title,
-    required String price,
-    required String description,
-    required String imageUrl,
+    required MenuData menu,
   }) {
-    // Mengekstrak angka dari text harga. Contoh: "Rp17.000" jadi 17000
-    int parsedHarga =
-        int.tryParse(price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
@@ -357,14 +547,16 @@ class _PackagePageState extends State<PackagePage> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-            child: Image.network(
-              imageUrl,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  _buildImagePlaceholder(),
-            ),
+            child: menu.imageUrl.isEmpty
+                ? _buildImagePlaceholder()
+                : Image.network(
+                    menu.imageUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildImagePlaceholder(),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(15),
@@ -376,7 +568,7 @@ class _PackagePageState extends State<PackagePage> {
                   children: [
                     Expanded(
                       child: Text(
-                        title,
+                        menu.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -385,7 +577,7 @@ class _PackagePageState extends State<PackagePage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      price,
+                      menu.formattedPrice,
                       textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 18,
@@ -405,9 +597,11 @@ class _PackagePageState extends State<PackagePage> {
                     color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Text(
-                    "TOP",
-                    style: TextStyle(
+                  child: Text(
+                    menu.category.isEmpty
+                        ? "MENU"
+                        : menu.category.toUpperCase(),
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -416,7 +610,7 @@ class _PackagePageState extends State<PackagePage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  description,
+                  menu.description,
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 15),
@@ -435,20 +629,7 @@ class _PackagePageState extends State<PackagePage> {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CheckoutPage(
-                            name: widget.name,
-                            email: widget.email,
-                            paketName: title, // Judul dinamis!
-                            paketDesc: description, // Deskripsi dinamis!
-                            hargaString: price, // Harga string dinamis!
-                            hargaInt:
-                                parsedHarga, // Harga angka untuk potong saldo dinamis!
-                          ),
-                        ),
-                      );
+                      _openCheckout(menu);
                     },
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
@@ -471,6 +652,75 @@ class _PackagePageState extends State<PackagePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openCheckout(MenuData menu) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutPage(
+          name: widget.name,
+          email: widget.email,
+          menuId: menu.id,
+          packageName: menu.title,
+          price: menu.price,
+          description: menu.description,
+          imageUrl: menu.imageUrl,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off, size: 44, color: Colors.redAccent),
+            const SizedBox(height: 12),
+            const Text(
+              'Menu belum bisa dimuat',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              error.replaceFirst('Exception: ', ''),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              onPressed: _refreshMenus,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFBF5E),
+                foregroundColor: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptySection(String message) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(color: Colors.grey.shade600),
       ),
     );
   }
@@ -532,4 +782,131 @@ class PackageBottomMenu extends StatelessWidget {
       ),
     );
   }
+}
+
+Map<String, dynamic>? _asMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
+
+  return null;
+}
+
+List<dynamic> _extractList(dynamic decoded) {
+  if (decoded is List) {
+    return decoded;
+  }
+
+  if (decoded is! Map<String, dynamic>) {
+    return const [];
+  }
+
+  final data = decoded['data'];
+
+  if (data is List) {
+    return data;
+  }
+
+  if (data is Map<String, dynamic>) {
+    if (data['menu'] is List) return data['menu'];
+    if (data['menus'] is List) return data['menus'];
+    if (data['items'] is List) return data['items'];
+    if (data['data'] is List) return data['data'];
+    if (data['rows'] is List) return data['rows'];
+    if (data['records'] is List) return data['records'];
+  }
+
+  if (decoded['menu'] is List) return decoded['menu'];
+  if (decoded['menus'] is List) return decoded['menus'];
+  if (decoded['items'] is List) return decoded['items'];
+  if (decoded['rows'] is List) return decoded['rows'];
+
+  return const [];
+}
+
+String _readString(
+  Map<String, dynamic> json,
+  List<String> keys, {
+  String fallback = '-',
+}) {
+  for (final key in keys) {
+    final value = json[key];
+
+    if (value != null && value.toString().trim().isNotEmpty) {
+      return value.toString().trim();
+    }
+  }
+
+  return fallback;
+}
+
+int _readInt(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+
+    if (value is int) return value;
+    if (value is num) return value.round();
+
+    if (value is String) {
+      final parsed = int.tryParse(value.replaceAll(RegExp(r'[^0-9-]'), ''));
+
+      if (parsed != null) return parsed;
+    }
+  }
+
+  return 0;
+}
+
+double _readNumber(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+
+    if (value is num) return value.toDouble();
+
+    if (value is String) {
+      final parsed = double.tryParse(
+        value.replaceAll(RegExp(r'[^0-9.-]'), ''),
+      );
+
+      if (parsed != null) return parsed;
+    }
+  }
+
+  return 0;
+}
+
+String _formatRupiah(int value) {
+  final text = value.toString();
+  final buffer = StringBuffer();
+
+  for (int i = 0; i < text.length; i++) {
+    final reverseIndex = text.length - i;
+    buffer.write(text[i]);
+
+    if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+      buffer.write('.');
+    }
+  }
+
+  return 'Rp$buffer';
+}
+
+String _resolveImageUrl(String value) {
+  if (value.isEmpty || value == '-') {
+    return '';
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return value;
+  }
+
+  if (value.startsWith('/')) {
+    return '${api.ApiConfig.baseUrl}$value';
+  }
+
+  return '${api.ApiConfig.baseUrl}/$value';
 }

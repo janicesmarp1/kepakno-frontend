@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../services/api_config.dart' as api;
 import 'login_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -21,30 +23,79 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isLoading = false;
 
   Future<void> register() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final phone = phoneController.text.trim();
+    final address = addressController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        address.isEmpty ||
+        password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Semua data wajib diisi'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Format email tidak valid'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password minimal 6 karakter'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:3001/api/auth/register');
+    final url = Uri.parse(api.ApiConfig.register);
 
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({
-          'nama_lengkap': nameController.text,
-          'email': emailController.text,
-          'password': passwordController.text,
-          'nomor_hp': phoneController.text,
-          'alamat': addressController.text,
+          'nama_lengkap': name,
+          'email': email,
+          'password': password,
+          'nomor_hp': phone,
+          'alamat': address,
         }),
       );
 
-      final data = jsonDecode(response.body);
+      final data = response.body.isEmpty ? null : jsonDecode(response.body);
 
-      if (response.statusCode == 201 && data['success'] == true) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data is Map &&
+          data['success'] == true) {
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Register berhasil, silakan login')),
+          const SnackBar(
+            content: Text('Register berhasil, silakan login'),
+            backgroundColor: Colors.green,
+          ),
         );
 
         Navigator.pushReplacement(
@@ -54,19 +105,35 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         );
       } else {
+        final message = data is Map
+            ? data['message']?.toString()
+            : 'Register gagal';
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Register gagal')),
+          SnackBar(
+            content: Text(message ?? 'Register gagal'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak bisa terhubung ke backend')),
+        SnackBar(
+          content: Text('Tidak bisa terhubung ke backend: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -83,10 +150,12 @@ class _SignUpPageState extends State<SignUpPage> {
     String hint,
     TextEditingController controller, {
     bool isPassword = false,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
@@ -142,10 +211,18 @@ class _SignUpPageState extends State<SignUpPage> {
                 inputField("Enter your full name", nameController),
                 const SizedBox(height: 14),
 
-                inputField("Enter your email", emailController),
+                inputField(
+                  "Enter your email",
+                  emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
                 const SizedBox(height: 14),
 
-                inputField("Enter your phone number", phoneController),
+                inputField(
+                  "Enter your phone number",
+                  phoneController,
+                  keyboardType: TextInputType.phone,
+                ),
                 const SizedBox(height: 14),
 
                 inputField("Enter your address", addressController),
@@ -184,7 +261,29 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
 
-                const SizedBox(height: 45),
+                const SizedBox(height: 14),
+
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                            ),
+                          );
+                        },
+                  child: const Text(
+                    "Sudah punya akun? Login",
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
               ],
             ),
           ),

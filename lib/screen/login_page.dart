@@ -1,7 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../services/api_config.dart' as api;
+import '../services/app_session.dart';
 import 'user_home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:3001/api/auth/login');
+    final url = Uri.parse(api.ApiConfig.login);
 
     try {
       final response = await http.post(
@@ -31,43 +34,80 @@ class _LoginPageState extends State<LoginPage> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'email': emailController.text,
-          'password': passwordController.text,
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
         }),
       );
 
-      final data = jsonDecode(response.body);
+      final data = response.body.isEmpty ? null : jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['success'] == true) {
-        final user = data['data']['user'];
+      if (response.statusCode == 200 &&
+          data is Map &&
+          data['success'] == true) {
+        final loginData = data['data'];
+
+        if (loginData is! Map) {
+          throw Exception('Format response login tidak sesuai');
+        }
+
+        final user = loginData['user'];
+
+        if (user is! Map) {
+          throw Exception('Data user tidak ditemukan');
+        }
+
+        final role = (user['role'] ?? '').toString().toLowerCase();
+
+        if (!mounted) return;
+
+        if (role == 'admin') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Akun admin, silakan login melalui menu ADMIN'),
+            ),
+          );
+          return;
+        }
+
+        AppSession.saveLoginData(Map<String, dynamic>.from(loginData));
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => UserHomePage(
-              name: user['nama_lengkap'] ?? 'User',
-              email: user['email'] ?? '',
+              name: user['nama_lengkap']?.toString() ?? 'User',
+              email: user['email']?.toString() ?? '',
             ),
           ),
         );
       } else {
+        if (!mounted) return;
+
+        final message = data is Map
+            ? data['message']?.toString()
+            : 'Login gagal';
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(data['message'] ?? 'Login gagal'),
+            content: Text(message ?? 'Login gagal'),
           ),
         );
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tidak bisa terhubung ke backend'),
+        SnackBar(
+          content: Text('Tidak bisa terhubung ke backend: $e'),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   @override
@@ -116,7 +156,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               children: [
                 const SizedBox(height: 50),
-
                 const Text(
                   "LOG IN",
                   style: TextStyle(
@@ -126,25 +165,19 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 120),
-
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: inputDecoration("Enter your email"),
                 ),
-
                 const SizedBox(height: 18),
-
                 TextField(
                   controller: passwordController,
                   obscureText: true,
                   decoration: inputDecoration("Enter your password"),
                 ),
-
                 const Spacer(),
-
                 SizedBox(
                   width: double.infinity,
                   height: 58,
@@ -169,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                   ),
                 ),
-
                 const SizedBox(height: 60),
               ],
             ),

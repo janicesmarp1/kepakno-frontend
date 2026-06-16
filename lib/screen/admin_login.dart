@@ -1,9 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../services/api_config.dart' as api;
+import '../services/app_session.dart';
 import 'admin_signup.dart';
-import 'admin_dashboard_page.dart';
+import 'admin_dashboard_page.dart' as admin;
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -23,49 +26,93 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:3001/api/auth/login');
+    final url = Uri.parse(api.ApiConfig.login);
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': emailController.text.trim(),
-          'password': passwordController.text.trim(),
-        }),
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'email': emailController.text.trim(),
+              'password': passwordController.text.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
-      final data = jsonDecode(response.body);
+      final data = response.body.isEmpty ? null : jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['success'] == true) {
-        final user = data['data']['user'];
+      if (response.statusCode == 200 &&
+          data is Map &&
+          data['success'] == true) {
+        final loginData = data['data'];
 
-        if (user['role'] == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardPage(),
+        if (loginData is! Map) {
+          throw Exception('Format response login tidak sesuai');
+        }
+
+        final user = loginData['user'];
+
+        if (user is! Map) {
+          throw Exception('Data user tidak ditemukan');
+        }
+
+        final role = (user['role'] ?? '').toString().toLowerCase();
+
+        if (!mounted) return;
+
+        if (role != 'admin') {
+          AppSession.clear();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Akun ini bukan admin'),
+              backgroundColor: Colors.redAccent,
             ),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Akun ini bukan admin')),
-          );
+          return;
         }
+
+        AppSession.saveLoginData(Map<String, dynamic>.from(loginData));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const admin.DashboardPage(),
+          ),
+        );
       } else {
+        if (!mounted) return;
+
+        final message = data is Map
+            ? data['message']?.toString()
+            : 'Login admin gagal';
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Login admin gagal')),
+          SnackBar(
+            content: Text(message ?? 'Login admin gagal'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak bisa terhubung ke backend')),
-      );
-    }
+      if (!mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tidak bisa terhubung ke backend: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -80,7 +127,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       hintText: hint,
       hintStyle: TextStyle(color: Colors.grey.shade400),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.7),
+      fillColor: Colors.white.withValues(alpha: 0.7),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 18,
         vertical: 15,
@@ -173,14 +220,16 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 ),
                 const SizedBox(height: 18),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminSignUpPage(),
-                      ),
-                    );
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdminSignUpPage(),
+                            ),
+                          );
+                        },
                   child: const Text(
                     "Create admin account",
                     style: TextStyle(
