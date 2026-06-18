@@ -121,9 +121,13 @@ class _AdminMenuPageState extends State<AdminMenuPage> {
       );
     }
 
-    final streamedResponse = await request.send();
+   final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
-    final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+
+      print('SAVE MENU STATUS: ${response.statusCode}');
+      print('SAVE MENU BODY: ${response.body}');
+
+final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final message = decoded is Map<String, dynamic>
@@ -747,7 +751,7 @@ class _MenuPhoto extends StatelessWidget {
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.add_photo_alternate_outlined,
                   color: AdminMenuPage._muted,
                 ),
@@ -885,37 +889,80 @@ class _MenuFormSheetState extends State<_MenuFormSheet> {
   }
 
   Future<void> _pickPhoto() async {
-    final picker = ImagePicker();
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
 
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-      maxWidth: 1600,
-    );
+      if (pickedFile == null) return;
 
-    if (image == null) return;
+      final bytes = await pickedFile.readAsBytes();
 
-    final bytes = await image.readAsBytes();
+      if (bytes.isEmpty) {
+        if (!mounted) return;
 
-    if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File gambar tidak bisa dibaca'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        return;
+      }
 
-    setState(() {
-      _photoBytes = bytes;
-      _photoFileName = image.name;
-    });
+      setState(() {
+        _photoBytes = bytes;
+        _photoFileName = pickedFile.name;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memilih gambar: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final paketId = int.tryParse(_onlyDigits(_paketIdController.text));
+    final kategoriId = int.tryParse(_onlyDigits(_kategoriIdController.text));
+    final price = int.tryParse(_onlyDigits(_priceController.text));
+    final stock = int.tryParse(_onlyDigits(_stockController.text));
+
+    if (paketId == null || paketId <= 0) {
+      _showValidationMessage('Paket ID harus berupa angka lebih dari 0');
+      return;
+    }
+
+    if (kategoriId == null || kategoriId <= 0) {
+      _showValidationMessage('Kategori ID harus berupa angka lebih dari 0');
+      return;
+    }
+
+    if (price == null || price <= 0) {
+      _showValidationMessage('Harga harus berupa angka lebih dari 0');
+      return;
+    }
+
+    if (stock == null || stock < 0) {
+      _showValidationMessage('Stok harus berupa angka minimal 0');
+      return;
+    }
+
     final payload = _MenuPayload(
-      paketId: int.tryParse(_onlyDigits(_paketIdController.text)) ?? 1,
-      kategoriId: int.tryParse(_onlyDigits(_kategoriIdController.text)) ?? 1,
+      paketId: paketId,
+      kategoriId: kategoriId,
       tanggalMenu: _dateController.text.trim(),
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
-      price: int.tryParse(_onlyDigits(_priceController.text)) ?? 0,
-      stock: int.tryParse(_onlyDigits(_stockController.text)) ?? 0,
+      price: price,
+      stock: stock,
       photoBytes: _photoBytes,
       photoFileName: _photoFileName,
     );
@@ -953,6 +1000,15 @@ class _MenuFormSheetState extends State<_MenuFormSheet> {
         _isSaving = false;
       });
     }
+  }
+
+  void _showValidationMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
   }
 
   Future<void> _pickDate() async {
@@ -1024,7 +1080,7 @@ class _MenuFormSheetState extends State<_MenuFormSheet> {
                               ? Image.network(
                                   widget.menu!.imageUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(
+                                  errorBuilder: (_, _, _) => const Icon(
                                     Icons.add_photo_alternate_outlined,
                                     size: 42,
                                     color: AdminMenuPage._muted,

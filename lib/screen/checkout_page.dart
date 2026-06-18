@@ -469,7 +469,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           child: Image.network(
                             widget.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
+                            errorBuilder: (_, _, _) =>
                                 const Icon(Icons.fastfood, color: Colors.brown),
                           ),
                         ),
