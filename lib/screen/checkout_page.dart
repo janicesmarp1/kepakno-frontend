@@ -5,10 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../services/api_config.dart' as api;
 import '../services/app_session.dart';
-import 'saldo_page.dart';
 import 'user_home_page.dart';
-
-List<Map<String, dynamic>> globalRiwayatPesanan = [];
 
 class CheckoutPage extends StatefulWidget {
   final String name;
@@ -38,6 +35,8 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   bool isLoading = false;
+  int currentSaldo = 0;
+  bool isSaldoLoaded = false;
 
   int quantity = 1;
   int alamatPengirimanId = 1;
@@ -49,9 +48,60 @@ class _CheckoutPageState extends State<CheckoutPage> {
   int get totalPembayaran => subtotal - diskon;
 
   @override
+  void initState() {
+    super.initState();
+    _fetchSaldoSaatIni();
+  }
+
+  @override
   void dispose() {
     catatanController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchSaldoSaatIni() async {
+    if (!AppSession.isLoggedIn) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(api.ApiConfig.me),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AppSession.authorizationHeader,
+        },
+      );
+
+      final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+
+      if (response.statusCode == 200 && decoded != null) {
+        final data = decoded['data'] ?? decoded['user'] ?? decoded;
+        if (data is Map) {
+          int saldoDariDb = _readInt(Map<String, dynamic>.from(data), [
+            'saldo',
+            'balance',
+            'wallet',
+          ]);
+          if (mounted) {
+            setState(() {
+              currentSaldo = saldoDariDb;
+              isSaldoLoaded = true;
+            });
+          }
+        }
+      }
+    } catch (_) {
+      int saldoSesi = _readInt(AppSession.user ?? {}, [
+        'saldo',
+        'balance',
+        'wallet',
+      ]);
+      if (mounted) {
+        setState(() {
+          currentSaldo = saldoSesi;
+          isSaldoLoaded = true;
+        });
+      }
+    }
   }
 
   Future<void> _prosesPembayaran() async {
@@ -65,7 +115,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
-    if (globalSaldo < totalPembayaran) {
+    if (!isSaldoLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Tunggu sebentar, sedang mengecek dompetmu..."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (currentSaldo < totalPembayaran) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -96,10 +156,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           "alamat_pengiriman_id": alamatPengirimanId,
           "catatan": catatanController.text.trim(),
           "items": [
-            {
-              "menu_id": widget.menuId,
-              "jumlah": quantity,
-            }
+            {"menu_id": widget.menuId, "jumlah": quantity},
           ],
         }),
       );
@@ -110,24 +167,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           response.statusCode < 300 &&
           data is Map &&
           data['success'] == true) {
-        setState(() {
-          globalSaldo -= totalPembayaran;
-        });
-
-        globalRiwayatPesanan.add({
-          "paket": widget.packageName,
-          "harga": totalPembayaran,
-          "tanggal": DateTime.now().toString(),
-          "status": "Berhasil",
-        });
-
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               "Pesanan berhasil dibuat dan sedang diproses.",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
@@ -189,7 +238,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   String _formatCurrency(int value) {
-    return "Rp${formatRupiah(value)}";
+    final text = value.toString();
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < text.length; i++) {
+      final reverseIndex = text.length - i;
+      buffer.write(text[i]);
+
+      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+        buffer.write('.');
+      }
+    }
+
+    return "Rp$buffer";
+  }
+
+  int _readInt(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value is int) return value;
+      if (value is num) return value.round();
+      if (value is String) {
+        final parsed = int.tryParse(value.replaceAll(RegExp(r'[^0-9-]'), ''));
+        if (parsed != null) return parsed;
+      }
+    }
+    return 0;
   }
 
   @override
@@ -282,7 +356,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             width: 150,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: isLoading ? Colors.grey.shade200 : Colors.white,
+                              color: isLoading
+                                  ? Colors.grey.shade200
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: const Color(0xFFC9F5CF),
@@ -393,10 +469,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           child: Image.network(
                             widget.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.fastfood,
-                              color: Colors.brown,
-                            ),
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.fastfood, color: Colors.brown),
                           ),
                         ),
                 ),
@@ -448,10 +522,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 const Expanded(
                   child: Text(
                     "Jumlah",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
@@ -603,7 +674,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Saldo Aplikasi (${_formatCurrency(globalSaldo)})",
+                    "Saldo Aplikasi (${isSaldoLoaded ? _formatCurrency(currentSaldo) : 'Memuat...'})",
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -644,7 +715,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
               children: [
                 _paymentRow("Subtotal Pesanan", _formatCurrency(subtotal)),
                 const SizedBox(height: 4),
-                _paymentRow("Diskon", "-${_formatCurrency(diskon)}", isDiscount: true),
+                _paymentRow(
+                  "Diskon",
+                  "-${_formatCurrency(diskon)}",
+                  isDiscount: true,
+                ),
                 const SizedBox(height: 12),
                 _paymentRow(
                   "Total Pembayaran",
@@ -696,11 +771,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black12),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1)),
         ],
       ),
       child: Text(
