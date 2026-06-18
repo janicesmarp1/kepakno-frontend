@@ -1,13 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'user_home_page.dart';
-import 'package_page.dart';
-import 'dashboard_page.dart';
-import 'profile_page.dart';
+import 'package:http/http.dart' as http;
 
-// ==========================================
-// VARIABEL GLOBAL & FUNGSI FORMAT RUPIAH
-// ==========================================
-// Saldo ini bisa diakses dari file mana saja
+import '../services/api_config.dart' as api;
+import '../services/app_session.dart';
+import 'dashboard_page.dart';
+import 'package_page.dart';
+import 'profile_page.dart';
+import 'user_home_page.dart';
+
 int globalSaldo = 0;
 
 String formatRupiah(int value) {
@@ -24,17 +25,52 @@ String formatRupiah(int value) {
   return result;
 }
 
-// ==========================================
-// 1. HALAMAN MENU UTAMA SALDO
-// ==========================================
+int _readIntStatic(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) {
+      final parsed = int.tryParse(value.replaceAll(RegExp(r'[^0-9-]'), ''));
+      if (parsed != null) return parsed;
+    }
+  }
+  return 0;
+}
+
+Future<int> _fetchBackendSaldo() async {
+  if (!AppSession.isLoggedIn) return 0;
+  try {
+    final response = await http.get(
+      Uri.parse(api.ApiConfig.me),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': AppSession.authorizationHeader,
+      },
+    );
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final decoded = jsonDecode(response.body);
+      final data = decoded['data'] ?? decoded['user'] ?? decoded;
+      if (data is Map) {
+        return _readIntStatic(Map<String, dynamic>.from(data), [
+          'saldo',
+          'balance',
+          'wallet',
+        ]);
+      }
+    }
+  } catch (_) {}
+  return _readIntStatic(AppSession.user ?? {}, ['saldo', 'balance', 'wallet']);
+}
+
 class SaldoPage extends StatefulWidget {
   final String name;
   final String email;
 
   const SaldoPage({
     super.key,
-    this.name = "Andry Wee",
-    this.email = "andrywee@gmail.com",
+    this.name = "User",
+    this.email = "user@mail.com",
   });
 
   @override
@@ -42,6 +78,27 @@ class SaldoPage extends StatefulWidget {
 }
 
 class _SaldoPageState extends State<SaldoPage> {
+  int _currentSaldo = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSaldo();
+  }
+
+  Future<void> _loadSaldo() async {
+    setState(() => _isLoading = true);
+    int saldo = await _fetchBackendSaldo();
+    if (mounted) {
+      setState(() {
+        _currentSaldo = saldo;
+        globalSaldo = saldo;
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +125,11 @@ class _SaldoPageState extends State<SaldoPage> {
                       const SizedBox(height: 10),
                       _buildProfileCard(widget.name, widget.email),
                       const SizedBox(height: 25),
-
-                      // Saldo memanggil variabel global
-                      _buildBalanceCard("Rp. ${formatRupiah(globalSaldo)}"),
-
+                      _buildBalanceCard(
+                        _isLoading
+                            ? "Memuat..."
+                            : "Rp. ${formatRupiah(_currentSaldo)}",
+                      ),
                       const SizedBox(height: 25),
                       Row(
                         children: [
@@ -119,11 +177,10 @@ class _SaldoPageState extends State<SaldoPage> {
     return Expanded(
       child: InkWell(
         onTap: () {
-          // Navigasi lalu refresh halaman saat kembali
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => page),
-          ).then((_) => setState(() {}));
+          ).then((_) => _loadSaldo());
         },
         child: Container(
           height: 90,
@@ -161,9 +218,6 @@ class _SaldoPageState extends State<SaldoPage> {
   }
 }
 
-// ==========================================
-// 2. HALAMAN ISI SALDO
-// ==========================================
 class IsiSaldoPage extends StatefulWidget {
   final String name;
   final String email;
@@ -175,6 +229,24 @@ class IsiSaldoPage extends StatefulWidget {
 
 class _IsiSaldoPageState extends State<IsiSaldoPage> {
   final TextEditingController _nominalController = TextEditingController();
+  int _currentSaldo = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSaldo();
+  }
+
+  Future<void> _loadSaldo() async {
+    int saldo = await _fetchBackendSaldo();
+    if (mounted) {
+      setState(() {
+        _currentSaldo = saldo;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -244,9 +316,11 @@ class _IsiSaldoPageState extends State<IsiSaldoPage> {
                       const SizedBox(height: 10),
                       _buildProfileCard(widget.name, widget.email),
                       const SizedBox(height: 20),
-
-                      _buildBalanceCard("Rp. ${formatRupiah(globalSaldo)}"),
-
+                      _buildBalanceCard(
+                        _isLoading
+                            ? "Memuat..."
+                            : "Rp. ${formatRupiah(_currentSaldo)}",
+                      ),
                       const SizedBox(height: 20),
                       const Text(
                         "Nominal",
@@ -324,7 +398,6 @@ class _IsiSaldoPageState extends State<IsiSaldoPage> {
                               int nominal = int.tryParse(rawInput) ?? 0;
 
                               if (nominal > 0) {
-                                // TAMBAH SALDO
                                 globalSaldo += nominal;
 
                                 Navigator.push(
@@ -383,9 +456,6 @@ class _IsiSaldoPageState extends State<IsiSaldoPage> {
   }
 }
 
-// ==========================================
-// 3. HALAMAN TARIK SALDO
-// ==========================================
 class TarikSaldoPage extends StatefulWidget {
   final String name;
   final String email;
@@ -397,6 +467,24 @@ class TarikSaldoPage extends StatefulWidget {
 
 class _TarikSaldoPageState extends State<TarikSaldoPage> {
   final TextEditingController _nominalController = TextEditingController();
+  int _currentSaldo = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSaldo();
+  }
+
+  Future<void> _loadSaldo() async {
+    int saldo = await _fetchBackendSaldo();
+    if (mounted) {
+      setState(() {
+        _currentSaldo = saldo;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -466,9 +554,11 @@ class _TarikSaldoPageState extends State<TarikSaldoPage> {
                       const SizedBox(height: 10),
                       _buildProfileCard(widget.name, widget.email),
                       const SizedBox(height: 20),
-
-                      _buildBalanceCard("Rp. ${formatRupiah(globalSaldo)}"),
-
+                      _buildBalanceCard(
+                        _isLoading
+                            ? "Memuat..."
+                            : "Rp. ${formatRupiah(_currentSaldo)}",
+                      ),
                       const SizedBox(height: 20),
                       const Text(
                         "Nominal",
@@ -546,8 +636,7 @@ class _TarikSaldoPageState extends State<TarikSaldoPage> {
                               int nominal = int.tryParse(rawInput) ?? 0;
 
                               if (nominal > 0) {
-                                if (nominal > globalSaldo) {
-                                  // Muncul peringatan kalau saldo nggak cukup
+                                if (nominal > _currentSaldo) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -558,7 +647,6 @@ class _TarikSaldoPageState extends State<TarikSaldoPage> {
                                     ),
                                   );
                                 } else {
-                                  // KURANGI SALDO
                                   globalSaldo -= nominal;
 
                                   Navigator.push(
@@ -618,9 +706,6 @@ class _TarikSaldoPageState extends State<TarikSaldoPage> {
   }
 }
 
-// ==========================================
-// 4. HALAMAN SUKSES TRANSAKSI
-// ==========================================
 class SuccessPage extends StatelessWidget {
   final String title;
   final String name;
@@ -680,7 +765,6 @@ class SuccessPage extends StatelessWidget {
                         style: TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                       const SizedBox(height: 60),
-
                       const Text(
                         "Penyedia Jasa",
                         style: TextStyle(fontSize: 11, color: Colors.black54),
@@ -700,15 +784,11 @@ class SuccessPage extends StatelessWidget {
                           color: Colors.black87,
                         ),
                       ),
-
                       const SizedBox(height: 40),
-
                       const Text(
                         "Total Transaksi",
                         style: TextStyle(fontSize: 11, color: Colors.black54),
                       ),
-
-                      // Nampilin nominal yang dinamis dari input form
                       Text(
                         "Rp ${formatRupiah(parsedNominal)}",
                         style: const TextStyle(
@@ -717,15 +797,12 @@ class SuccessPage extends StatelessWidget {
                           color: Colors.black,
                         ),
                       ),
-
                       const SizedBox(height: 80),
-
                       SizedBox(
                         width: 250,
                         height: 50,
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            // Menuju Home Page dengan saldo terbaru
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
@@ -767,10 +844,6 @@ class SuccessPage extends StatelessWidget {
   }
 }
 
-// ==========================================
-// WIDGET KOMPONEN PENDUKUNG
-// ==========================================
-
 Widget _buildHeader(BuildContext context) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -782,7 +855,7 @@ Widget _buildHeader(BuildContext context) {
           child: const CircleAvatar(
             radius: 15,
             backgroundColor: Colors.black,
-            child: Icon(Icons.person, color: Color(0xFFFFB84D), size: 20),
+            child: Icon(Icons.arrow_back, color: Color(0xFFFFB84D), size: 20),
           ),
         ),
         const Icon(Icons.notifications, color: Colors.black, size: 28),
@@ -923,8 +996,18 @@ Widget _buildBottomNav(BuildContext context, String name, String email) {
           "Home",
           UserHomePage(name: name, email: email),
         ),
-        _bottomIcon(context, Icons.restaurant, "Paket", const PackagePage()),
-        _bottomIcon(context, Icons.badge, "Dasbor", const DashboardPage()),
+        _bottomIcon(
+          context,
+          Icons.restaurant,
+          "Paket",
+          PackagePage(name: name, email: email),
+        ),
+        _bottomIcon(
+          context,
+          Icons.badge,
+          "Dasbor",
+          DashboardPage(name: name, email: email),
+        ),
         _bottomIcon(
           context,
           Icons.person,
