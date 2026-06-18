@@ -1,6 +1,6 @@
 class ApiConfig {
   static const String baseUrl = 'http://localhost:3001';
-
+  static String get notifikasi => '$baseUrl/api/notifikasi';
   static const String login = '$baseUrl/api/auth/login';
   static const String register = '$baseUrl/api/auth/register';
   static const String me = '$baseUrl/api/auth/me';
