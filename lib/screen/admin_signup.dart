@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../services/api_config.dart' as api;
 
 import 'admin_login.dart';
 
@@ -25,7 +26,7 @@ class _AdminSignUpPageState extends State<AdminSignUpPage> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:3001/api/auth/register');
+    final url = Uri.parse(api.ApiConfig.register);
 
     try {
       final response = await http.post(
