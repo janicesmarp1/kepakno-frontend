@@ -11,7 +11,6 @@ import 'admin_dashboard_page.dart';
 import 'admin_menu_page.dart';
 import 'admin_schedule_page.dart';
 
-
 class AdminOrderPage extends StatefulWidget {
   const AdminOrderPage({super.key});
 
@@ -38,15 +37,16 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
   }
 
   Future<List<_OrderData>> _fetchOrders() async {
-      final url = Uri.parse('http://localhost:3001/api/pesanan/admin/all?page=1&limit=10');
+    // 1. Dirapikan agar tidak tumpang tindih
+    final url = Uri.parse('${api.ApiConfig.adminPesanan}?page=1&limit=100');
 
-      final response = await http.get(
-    Uri.parse('${api.ApiConfig.adminPesanan}?page=1&limit=10'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': AppSession.authorizationHeader,
-    },
-  );
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': AppSession.authorizationHeader,
+      },
+    );
 
     final decoded = jsonDecode(response.body);
 
@@ -225,13 +225,18 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
   }
 
   Future<void> _updateOrderStatus(_OrderData order, String status) async {
-    final url = Uri.parse(
-      'http://localhost:3000/api/pesanan/admin/${order.id}/status',
-    );
+    // 1. Pakai rute dari ApiConfig (Otomatis pakai port 3001)
+    final url = Uri.parse(api.ApiConfig.adminUpdatePesananStatus(order.id));
+
     final response = await http.patch(
       url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'status_pesanan': 'dikonfirmasi'}),
+      headers: {
+        'Content-Type': 'application/json',
+        // 2. TAMBAHKAN TOKEN INI BIAR NGGAK DITOLAK BACKEND!
+        'Authorization': AppSession.authorizationHeader,
+      },
+      // 3. Statusnya dibikin dinamis sesuai tombol yang ditekan
+      body: jsonEncode({'status_pesanan': status.toLowerCase()}),
     );
 
     final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
@@ -287,7 +292,8 @@ class _OrderData {
   });
 
   factory _OrderData.fromJson(Map<String, dynamic> json) {
-    final user = _asMap(json['user']) ??
+    final user =
+        _asMap(json['user']) ??
         _asMap(json['customer']) ??
         _asMap(json['customerData']);
     final items = _readOrderItems(json);
@@ -318,14 +324,16 @@ class _OrderData {
       ),
       duration: _readDuration(json),
       people: _readPeople(json),
-      price: _formatRupiah(_readNumber(json, const [
-        'price',
-        'total',
-        'totalPrice',
-        'totalPayment',
-        'amount',
-        'subtotal',
-      ])),
+      price: _formatRupiah(
+        _readNumber(json, const [
+          'price',
+          'total',
+          'totalPrice',
+          'totalPayment',
+          'amount',
+          'subtotal',
+        ]),
+      ),
       status: _normalizeStatus(_readString(json, const ['status', 'state'])),
       phoneNumber: _readString(json, const [
         'phoneNumber',
@@ -535,7 +543,9 @@ String _readDuration(Map<String, dynamic> json) {
     'subscriptionDuration',
   ]);
   if (duration != '-') {
-    return duration.toLowerCase().contains('hari') ? duration : '$duration Hari';
+    return duration.toLowerCase().contains('hari')
+        ? duration
+        : '$duration Hari';
   }
 
   final days = _readInt(json, const ['days', 'totalDays', 'jumlahHari']);
@@ -543,7 +553,12 @@ String _readDuration(Map<String, dynamic> json) {
 }
 
 String _readPeople(Map<String, dynamic> json) {
-  final people = _readString(json, const ['people', 'person', 'pax', 'jumlahOrang']);
+  final people = _readString(json, const [
+    'people',
+    'person',
+    'pax',
+    'jumlahOrang',
+  ]);
   if (people != '-') {
     return people.toLowerCase().contains('orang') ? people : '$people Orang';
   }
@@ -1072,7 +1087,9 @@ class _OrderDetailSheet extends StatelessWidget {
     Navigator.pop(context);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => _OrderCustomerCallPage(order: order)),
+      MaterialPageRoute(
+        builder: (context) => _OrderCustomerCallPage(order: order),
+      ),
     );
   }
 
@@ -1080,7 +1097,9 @@ class _OrderDetailSheet extends StatelessWidget {
     Navigator.pop(context);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => _OrderCustomerChatPage(order: order)),
+      MaterialPageRoute(
+        builder: (context) => _OrderCustomerChatPage(order: order),
+      ),
     );
   }
 
@@ -1305,10 +1324,7 @@ class _DetailRow extends StatelessWidget {
         Icon(icon, size: 17, color: AdminOrderPage._muted),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12, height: 1.35),
-          ),
+          child: Text(text, style: const TextStyle(fontSize: 12, height: 1.35)),
         ),
       ],
     );
@@ -1393,7 +1409,10 @@ class _OrderCustomerCallPage extends StatelessWidget {
                 children: const [
                   _SimpleCallButton(icon: Icons.mic, label: 'Mute'),
                   _SimpleCallButton(icon: Icons.volume_up, label: 'Speaker'),
-                  _SimpleCallButton(icon: Icons.message_outlined, label: 'Chat'),
+                  _SimpleCallButton(
+                    icon: Icons.message_outlined,
+                    label: 'Chat',
+                  ),
                 ],
               ),
               const SizedBox(height: 34),
@@ -1491,9 +1510,8 @@ class _OrderCustomerChatPageState extends State<_OrderCustomerChatPage> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => _OrderCustomerCallPage(
-                    order: widget.order,
-                  ),
+                  builder: (context) =>
+                      _OrderCustomerCallPage(order: widget.order),
                 ),
               );
             },
